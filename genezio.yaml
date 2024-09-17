@@ -18,3 +18,12 @@ backend:
       handler: handler
       entry: index.mjs
   cloudProvider: genezio-cloud
+frontend:
+    path: ./
+    publish: ""
+    scripts:
+        build: npm run build
+        deploy: npm install
+name: EcommerceSystem-BE
+region: us-east-1
+yamlVersion: 2

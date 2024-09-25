@@ -1,9 +1,13 @@
-import mongoose from 'mongoose';
-// khởi tạo schema (định nghĩa các field cho các document và kiểu dữ liệu của field đó)
+import mongoose from "mongoose";
+
 const productSchema = new mongoose.Schema({
-    title: String,
-    categories: String,
+  title: { type: String, required: true },
+  category: { type: String, required: true },
+  image: { type: String, required: true },
+  description: { type: String, required: true },
+  price: { type: String, required: true },
+  rating: { type: String, required: true },
 });
-// định nghĩa model cần truyền với phương thức model và các tham số lần lượt: tên collections, schema của document
-const ProductModel = mongoose.model('users', productSchema);
+
+const ProductModel = mongoose.model("users", productSchema);
 export default ProductModel;

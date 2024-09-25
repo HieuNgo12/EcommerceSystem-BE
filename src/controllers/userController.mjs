@@ -7,12 +7,12 @@ const userController = {
       if (!userName) throw new Error("userName is required!");
       if (!email) throw new Error("email is required!");
 
-      const createdUser = await UsersModel.find({
+      const newUser = await UsersModel.find({
         userName,
         email,
       });
       res.status(201).send({
-        data: createdUser,
+        data: newUser,
         message: "User found successfully!",
         success: true,
       });

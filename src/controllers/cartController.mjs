@@ -1,6 +1,8 @@
+import CartModel from "../database/models/cart.mjs";
+
 const cartController = {
   getCart: async (req, res, next) => {
-    const product = await ProductModel.find({
+    const product = await CartModel.find({
       userName,
       email,
     });
@@ -11,9 +13,15 @@ const cartController = {
     });
   },
   createCart: async (req, res, next) => {
-    const product = await ProductModel.create({
-      title: "abc",
-      categories: "abc",
+
+    const { title, categories, image, description, price, rating } = req.body;
+    const product = await CartModel.create({
+      title,
+      categories,
+      image,
+      description,
+      price,
+      rating,
     });
     res.status(201).send({
       data: product,
@@ -21,7 +29,23 @@ const cartController = {
       success: true,
     });
   },
-  updateProduct: (req, res, next) => {},
+  updateProduct: async (req, res, next) => {
+
+    const { title, categories, image, description, price, rating } = req.body;
+    const product = await ProductModel.create({
+      title,
+      categories,
+      image,
+      description,
+      price,
+      rating,
+    });
+    res.status(201).send({
+      data: product,
+      message: "User found successfully!",
+      success: true,
+    });
+  },
   deleteProduct: (req, res, next) => {},
 };
 export default cartController;

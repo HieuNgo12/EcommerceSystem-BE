@@ -56,7 +56,10 @@ const userController = {
     }
   },
   deleteUser: (req, res, next) => {
-    const userRole = "admin"; // Vai trò của người dùng (ví dụ: admin hoặc user)
+    UsersModel.deleteOne({
+        _id: req.params.userId
+    })
+
     if (userRole === "admin") {
       next(); // Cho phép truy cập vào route
     } else {

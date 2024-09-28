@@ -9,5 +9,5 @@ const productSchema = new mongoose.Schema({
   rating: { type: String, required: true },
 });
 
-const ProductModel = mongoose.model("users", productSchema);
+const ProductModel = mongoose.model("products", productSchema);
 export default ProductModel;

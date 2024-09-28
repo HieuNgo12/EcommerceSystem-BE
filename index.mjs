@@ -3,6 +3,7 @@ import Serverless from "serverless-http";
 import dotenv from "dotenv";
 import connectToMongo from "./src/database/connection.mjs";
 import ProductRouter from "./src/routers/productRouter.mjs";
+import OrderRouter from "./src/routers/orderRouter.mjs";
 dotenv.config();
 // phương thức connect với tham số connect string
 const app = express();
@@ -10,6 +11,8 @@ const app = express();
 const App = () => {
   connectToMongo()
   ProductRouter(app);
+  OrderRouter(app);
+  
   if (process.env.NODE_ENV === "dev") {
     app.listen(8080, () => {
       console.log(

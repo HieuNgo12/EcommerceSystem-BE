@@ -22,7 +22,7 @@ const orderController = {
       });
     },
     updateOrder: (req, res, next) => {},
-    deleteProduct: (req, res, next) => {},
+    deleteOrder: (req, res, next) => {},
   };
-  export default cartController;
+  export default orderController;
   

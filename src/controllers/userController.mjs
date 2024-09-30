@@ -7,12 +7,12 @@ const userController = {
       if (!userName) throw new Error("userName is required!");
       if (!email) throw new Error("email is required!");
 
-      const createdUser = await UsersModel.find({
+      const newUser = await UsersModel.find({
         userName,
         email,
       });
       res.status(201).send({
-        data: createdUser,
+        data: newUser,
         message: "User found successfully!",
         success: true,
       });
@@ -56,7 +56,10 @@ const userController = {
     }
   },
   deleteUser: (req, res, next) => {
-    const userRole = "admin"; // Vai trò của người dùng (ví dụ: admin hoặc user)
+    UsersModel.deleteOne({
+        _id: req.params.userId
+    })
+
     if (userRole === "admin") {
       next(); // Cho phép truy cập vào route
     } else {

@@ -2,7 +2,10 @@ import ProductModel from "../database/models/product.mjs";
 
 const productController = {
   getProduct: async (req, res, next) => {
-    const product = await ProductModel.find({});
+    const product = await ProductModel.find({})
+    .populate('reviewId')
+      .then((data) => console.log(data))
+      .catch((err) => console.log(err));
     res.status(201).send({
       data: product,
       message: "User found successfully!",

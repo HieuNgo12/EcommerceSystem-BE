@@ -7,18 +7,14 @@ const orderModel = new mongoose.Schema(
 
       ref: "user",
     },
-    items: [
-      {
-        item: {
-          type: mongoose.Schema.Types.ObjectId,
+    item: {
+      type: mongoose.Schema.Types.ObjectId,
 
-          ref: "products",
-        },
-        quantity: {
-          type: String,
-        },
-      },
-    ],
+      ref: "products",
+    },
+    quantity: {
+      type: String,
+    },
     name: {
       type: String,
     },

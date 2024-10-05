@@ -3,7 +3,7 @@ import ProductModel from "../database/models/product.mjs";
 const productController = {
   getProduct: async (req, res, next) => {
     const product = await ProductModel.find({});
-    res.status(201).send({
+    res.status(200).send({
       data: product,
       message: "User found successfully!",
       success: true,

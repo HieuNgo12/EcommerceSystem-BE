@@ -8,6 +8,7 @@ const authMiddleware = {
       res.status(401).send("Unauthorized"); // Trả về lỗi 401 nếu không được xác thực
     }
   },
+  
   auhthorizationAdmin: (req, res, next) => {
     const userRole = "admin"; // Vai trò của người dùng (ví dụ: admin hoặc user)
     if (userRole === "admin") {

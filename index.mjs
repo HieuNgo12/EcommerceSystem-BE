@@ -4,15 +4,27 @@ import dotenv from "dotenv";
 import connectToMongo from "./src/database/connection.mjs";
 import ProductRouter from "./src/routers/productRouter.mjs";
 import OrderRouter from "./src/routers/orderRouter.mjs";
+import cors from "cors"; // Import CORS
+import AuthRouter from "./src/routers/authRouter.mjs";
+import UserRouter from "./src/routers/userRouter.mjs";
+import AdminRouter from "./src/routers/adminRouter.mjs";
+import authenticationController from "./src/controllers/authenticationController.mjs";
+
 dotenv.config();
 // phương thức connect với tham số connect string
 const app = express();
+app.use(cors());
+app.use(express.json());
 
 const App = () => {
-  connectToMongo()
+  connectToMongo();
   ProductRouter(app);
   OrderRouter(app);
-  
+
+  app.use("/api/v1/auth", AuthRouter);
+  app.use("/api/v1/user", authenticationController.authMiddleware, authenticationController.isUser, UserRouter);
+  app.use("/ap1/v1/admin", authenticationController.authMiddleware, authenticationController.isAdmin, AdminRouter)
+
   if (process.env.NODE_ENV === "dev") {
     app.listen(8080, () => {
       console.log(

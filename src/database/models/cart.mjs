@@ -1,18 +1,26 @@
 import mongoose from "mongoose";
+import ProductModel from "./product.mjs";
 
 const cartModel = new mongoose.Schema(
   {
-    firstName: { type: String, required: true },
-    companyName: { type: String, required: true },
-    address: { type: String, required: true },
-    apartment: { type: String },
-    town: { type: String, required: true },
-    phoneNumber: { type: String },
-    email: { type: String, required: true },
-    user: {
-      type: mongoose.type.ObjectId,
-      ref: "user",
+    userId: {
+      type: String,
+      
     },
+    items: [
+      {
+        _id: false,
+        item: {
+          type: mongoose.Schema.Types.ObjectId,
+          
+          ref: "product",
+        },
+        quantity: {
+          type: String,
+          
+        },
+      },
+    ],
   },
   { autoCreate: true, autoIndex: true }
 );

@@ -1,31 +1,66 @@
 import mongoose from "mongoose";
 
-const orderModel = new mongoose.Schema({
-  firstName: { type: String, required: true },
-  companyName: { type: String, required: true },
-  address: { type: String, required: true },
-  apartment: { type: String },
-  town: { type: String, required: true },
-  phoneNumber: { type: String },
-  email: { type: String, required: true },
-  dateEstimate: { type: Date },
-});
+const orderModel = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+
+      ref: "user",
+    },
+    items: [
+      {
+        item: {
+          type: mongoose.Schema.Types.ObjectId,
+
+          ref: "products",
+        },
+        quantity: {
+          type: String,
+        },
+      },
+    ],
+    name: {
+      type: String,
+    },
+    totalAmount: {
+      type: String,
+    },
+    address: {
+      type: String,
+    },
+    phone: {
+      type: String,
+    },
+    paymentMethod: {
+      type: String,
+    },
+    status: {
+      type: String,
+      enum: ["waiting", "confirmed", "deliver", "success"], //waiting, confirmed, deliver, success
+      default: "waiting",
+    },
+  },
+  {
+    timestamps: true,
+  }
+  //   dateEstimate: { type: Date },
+);
 
 const OrderModel = mongoose.model("orders", orderModel);
 
-const initializeOrderMode = async () => {
-  await OrderModel.create([
-    {
-      firstName: "John Smith",
-      companyName: "john.smith@gmail.com",
-      address: "1234 ABC street",
-      apartment: "blk4",
-      town: "New York",
-      phoneNumber: "123456789",
+// const initializeOrderMode = async () => {
+//   await OrderModel.create([
+//     {
+//       firstName: "John Smith",
+//       companyName: "FPT",
+//       address: "1234 ABC street",
+//       apartment: "blk4",
+//       town: "New York",
+//       phoneNumber: "123456789",
+//       email: "johnsmith@gmail.com",
+//     },
+//   ]);
+// };
 
-    },
-  ]);
-};
-
-initializeOrderMode();
+// initializeOrderMode();
 export default OrderModel;

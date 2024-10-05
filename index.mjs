@@ -9,6 +9,9 @@ import AuthRouter from "./src/routers/authRouter.mjs";
 import UserRouter from "./src/routers/userRouter.mjs";
 import AdminRouter from "./src/routers/adminRouter.mjs";
 import authenticationController from "./src/controllers/authenticationController.mjs";
+import morgan from "morgan";
+import cors from "cors";
+import bodyParser from "body-parser";
 
 dotenv.config();
 // phương thức connect với tham số connect string
@@ -17,6 +20,12 @@ app.use(cors());
 app.use(express.json());
 
 const App = () => {
+  app.use(morgan("dev"));
+  // app.use("/public", express.static(path.join(__dirname, "public")));
+  app.use(cors());
+  app.use(express.json());
+  app.use(bodyParser.json({ limit: "10mb" }));
+  app.use(bodyParser.urlencoded({ extended: false, limit: "10mb" }));
   connectToMongo();
   ProductRouter(app);
   OrderRouter(app);

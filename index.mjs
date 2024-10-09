@@ -10,9 +10,7 @@ import UserRouter from "./src/routers/userRouter.mjs";
 import AdminRouter from "./src/routers/adminRouter.mjs";
 import authenticationController from "./src/controllers/authenticationController.mjs";
 import morgan from "morgan";
-import cors from "cors";
 import bodyParser from "body-parser";
-import UserRouter from "./src/routers/userRouter.mjs";
 
 dotenv.config();
 // phương thức connect với tham số connect string

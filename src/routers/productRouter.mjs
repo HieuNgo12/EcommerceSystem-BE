@@ -2,28 +2,47 @@ import authenticationController from "../controllers/authenticationController.mj
 import productController from "../controllers/productController.mjs";
 
 const ProductRouter = (app) => {
-  app.get("/product", authenticationController.isUser, productController.getProduct);
-  app.post("/product", authenticationController.isAdmin, productController.postProduct);
-  app.put("/product", authenticationController.isAdmin,productController.updateProduct);
-  app.delete("/product/:productId",authenticationController.isAdmin, productController.deleteProduct);
+  // Route to get all products
   app.get(
-    "/api/v1/product",    productController.getProduct
+    "/product",
+    authenticationController.isUser,
+    productController.getAllProducts
+  );
 
-    //  authenticationController.isLogin,
-  );
-  app.post(
-    "/api/v1/product",
-    authenticationController.isAdmin,
-    productController.postProduct
-  );
-  app.put(
-    "/api/v1/product",
-    authenticationController.isAdmin,
-    productController.updateProduct
-  );
-  // app.delete("/product/:productId",authenticationController.isAdmin, productController.deleteProduct);
-  app.delete("/api/v1/product", productController.deleteAllProducts);
+  // Route to get a specific product by ID
+  app.get("/api/v1/products/:productId", productController.getProductById);
 
-  app.post("/productData", productController.createProductData);
+  // app.post(
+  //   "/product",
+  //   authenticationController.isAdmin,
+  //   productController.postProduct
+  // );
+  // app.put(
+  //   "/product",
+  //   authenticationController.isAdmin,
+  //   productController.updateProduct
+  // );
+  // app.delete(
+  //   "/product/:productId",
+  //   authenticationController.isAdmin,
+  //   productController.deleteProduct
+  // );
+
+  // //  authenticationController.isLogin,
+
+  // app.post(
+  //   "/api/v1/product",
+  //   authenticationController.isAdmin,
+  //   productController.postProduct
+  // );
+  // app.put(
+  //   "/api/v1/product",
+  //   authenticationController.isAdmin,
+  //   productController.updateProduct
+  // );
+  // // app.delete("/product/:productId",authenticationController.isAdmin, productController.deleteProduct);
+  // app.delete("/api/v1/product", productController.deleteAllProducts);
+
+  // app.post("/productData", productController.createProductData);
 };
 export default ProductRouter;

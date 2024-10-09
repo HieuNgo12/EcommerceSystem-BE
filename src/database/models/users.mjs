@@ -35,14 +35,14 @@ const userSchema = new mongoose.Schema(
 //     { firstName: 'User 1', lastName: 'LA', email: "abc@gmail.com", address: "127 blk", role: "admin" },
 //     { firstName: 'User 2', lastName: 'LA', email: "abc@gmail.com", address: "127 blk", role: "member" },
 //   ];
-const userSchema = new mongoose.Schema({
-  firstName: { type: String },
-  lastName: { type: String },
-  username: {type: String, unique: true },
-  email: { type: String, unique: true  },
-  address: { type: String },
-  roles: { type: String , enum: ["Admin", "User"]},
-});
+// const userSchema = new mongoose.Schema({
+//   firstName: { type: String },
+//   lastName: { type: String },
+//   username: {type: String, unique: true },
+//   email: { type: String, unique: true  },
+//   address: { type: String },
+//   roles: { type: String , enum: ["Admin", "User"]},
+// });
 
 // định nghĩa model cần truyền với phương thức model và các tham số lần lượt: tên collections, schema của document
 const UsersModel = mongoose.model("user", userSchema);

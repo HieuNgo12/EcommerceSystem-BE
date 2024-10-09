@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import UsersModel from "../database/models/users.mjs";
 
 const SECRET_KEY = "your_secret_key";
 
@@ -6,7 +7,7 @@ const authenticationController = {
   login: async (req, res, next) => {
     const { email, password } = req.body;
     // tìm thông tin user | tài khoản với email được gửi lên
-    const currentUser = await UserModel.findOne({ email });
+    const currentUser = await UsersModel.findOne({ email });
     if (!currentUser) throw new Error("Sai tài khoản hoặc mật khẩu");
 
     const hashingPasswordLogin = bcrypt.hashSync(password, currentUser.salt);
@@ -23,7 +24,7 @@ const authenticationController = {
   register: async (req, res, next) => {
     const { email, password } = req.body;
     // tìm thông tin user | tài khoản với email được gửi lên
-    const currentUser = await UserModel.findOne({ email });
+    const currentUser = await UsersModel.findOne({ email });
     if (!currentUser) throw new Error("Sai tài khoản hoặc mật khẩu");
 
     const hashingPasswordLogin = bcrypt.hashSync(password, currentUser.salt);
@@ -39,7 +40,7 @@ const authenticationController = {
   },
   isLogin: async (req, res, next) => 
     {
-      const token = req.header("auth-token");
+      const token = req.header("Authorization");
       if (!token) {
         return res.status(401).send({ err: "Token is expired" });
       }

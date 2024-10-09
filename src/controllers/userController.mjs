@@ -27,8 +27,8 @@ const userController = {
   createUser: async (req, res, next) => {
     try {
       const { userName, email } = req.body;
-      if (!userName) throw new Error("userName is required!");
-      if (!email) throw new Error("email is required!");
+      // if (!userName) throw new Error("userName is required!");
+      // if (!email) throw new Error("email is required!");
 
       const createdUser = await UsersModel.create({
         userName,

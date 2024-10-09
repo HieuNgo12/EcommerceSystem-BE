@@ -7,7 +7,8 @@ const productSchema = new mongoose.Schema({
   description: { type: String },
   price: { type: String },
   rating: { type: String },
-  reviewId : {type: String, ref: 'review'}
+  reviewId : {type: String, ref: 'review'},
+  count: {type: String}
 });
 
 const ProductModel = mongoose.model("products", productSchema);

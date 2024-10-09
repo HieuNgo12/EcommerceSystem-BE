@@ -12,7 +12,7 @@ const tokenMiddlewares = {
     return token;
   },
   verifyToken: (req, res, next) => {
-    const token = req.header("auth-token");
+    const token = req.header("Authorization")[1];
     if (!token) {
       return res.status(401).send({ err: "Token is expired" });
     }

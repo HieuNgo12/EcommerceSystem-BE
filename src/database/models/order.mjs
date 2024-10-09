@@ -13,22 +13,38 @@ const orderModel = new mongoose.Schema(
       ref: "products",
     },
     quantity: {
+      type: Number,
+    },
+    firstName: {
       type: String,
     },
-    name: {
+    companyName: {
       type: String,
     },
-    totalAmount: {
+    subTotal: {
+      type: Number,
+    },
+    streetAddress: {
       type: String,
     },
-    address: {
+    apartment: {
       type: String,
     },
-    phone: {
+    phoneNumber: {
+      type: String,
+    },
+    emailAdress: {
       type: String,
     },
     paymentMethod: {
       type: String,
+      default: 'Cash',
+      enum: ['Cash', 'Credit']
+    },
+    cardNumber: {
+      type: String,
+      default: 'Cash',
+      enum: ['Cash', 'Credit']
     },
     status: {
       type: String,

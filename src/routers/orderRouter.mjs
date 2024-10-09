@@ -2,13 +2,13 @@ import authenticationController from "../controllers/authenticationController.mj
 import orderController from "../controllers/orderController.mjs";
 
 const OrderRouter = (app) => {
-  app.get("/order", 
+  app.get("/api/v1/order", 
   // authenticationController.isLogin,
    orderController.getOrder);
-  app.post("/order", 
+  app.post("/api/v1/order", 
   // authenticationController.isAdmin, 
   orderController.createOrder);
-  app.put("/order", 
+  app.put("/api/v1/order", 
   // authenticationController.isAdmin,
   orderController.updateOrder);
 

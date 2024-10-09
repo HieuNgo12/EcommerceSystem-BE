@@ -3,22 +3,22 @@ import productController from "../controllers/productController.mjs";
 
 const ProductRouter = (app) => {
   app.get(
-    "/product",
+    "/api/v1/product",    productController.getProduct
+
     //  authenticationController.isLogin,
-    productController.getProduct
   );
   app.post(
-    "/product",
+    "/api/v1/product",
     authenticationController.isAdmin,
     productController.postProduct
   );
   app.put(
-    "/product",
+    "/api/v1/product",
     authenticationController.isAdmin,
     productController.updateProduct
   );
   // app.delete("/product/:productId",authenticationController.isAdmin, productController.deleteProduct);
-  app.delete("/product/", productController.deleteAllProducts);
+  app.delete("/api/v1/product", productController.deleteAllProducts);
 
   app.post("/productData", productController.createProductData);
 };

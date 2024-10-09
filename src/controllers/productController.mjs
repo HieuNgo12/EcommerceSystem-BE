@@ -2,7 +2,7 @@ import ProductModel from "../database/models/product.mjs";
 
 const productController = {
   getProduct: async (req, res, next) => {
-    console.log();
+    console.log("abc");
     const product = await ProductModel.find({})
       .populate("reviewId")
       .then((data) => 
@@ -30,88 +30,7 @@ const productController = {
   },
   createProductData: async (req, res, next) => {
     // console.log(req.body);
-    const products = [
-      {
-        title: "Very beautiful car Ferrari Power Up",
-        categories: "vehicle",
-        image: "./image.png",
-        description: "Very Fast Car",
-        price: 950,
-        rating: 5,
-      },
-      {
-        title: "Very Strong Handome Car Lamborghini Power Up",
-        categories: "vehicle",
-        image: "./image.png",
-        description: "Very Fast Car",
-        price: 9000,
-        rating: 5,
-      },
-      {
-        title: "Very beautiful car Ferrari Power Up",
-        categories: "vehicle",
-        image: "./image.png",
-        description: "Very Fast Car",
-        price: 950,
-        rating: 5,
-      },
-      {
-        title: "Very Strong Handome Car Lamborghini Power Up",
-        categories: "vehicle",
-        image: "./image.png",
-        description: "Very Fast Car",
-        price: 9000,
-        rating: 5,
-      },
-      {
-        title: "Very beautiful car Ferrari Power Up",
-        categories: "vehicle",
-        image: "./image.png",
-        description: "Very Fast Car",
-        price: 950,
-        rating: 5,
-      },
-      {
-        title: "Very Strong Handome Car Lamborghini Power Up",
-        categories: "vehicle",
-        image: "./image.png",
-        description: "Very Fast Car",
-        price: 9000,
-        rating: 5,
-      },
-      {
-        title: "Very beautiful car Ferrari Power Up",
-        categories: "vehicle",
-        image: "./image.png",
-        description: "Very Fast Car",
-        price: 950,
-        rating: 5,
-      },
-      {
-        title: "Very Strong Handome Car Lamborghini Power Up",
-        categories: "vehicle",
-        image: "./image.png",
-        description: "Very Fast Car",
-        price: 9000,
-        rating: 5,
-      },
-      {
-        title: "Very beautiful car Ferrari Power Up",
-        categories: "vehicle",
-        image: "./image.png",
-        description: "Very Fast Car",
-        price: 950,
-        rating: 5,
-      },
-      {
-        title: "Very Strong Handome Car Lamborghini Power Up",
-        categories: "vehicle",
-        image: "./image.png",
-        description: "Very Fast Car",
-        price: 9000,
-        rating: 5,
-      },
-    ];
+ 
     const product = await ProductModel.insertMany(req.body);
 
     res.status(201).send({

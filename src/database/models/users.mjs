@@ -3,9 +3,10 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema({
   firstName: { type: String },
   lastName: { type: String },
-  email: { type: String },
+  username: {type: String, unique: true },
+  email: { type: String, unique: true  },
   address: { type: String },
-  roles: { type: String },
+  roles: { type: String , enum: ["Admin", "User"]},
 });
 
 // định nghĩa model cần truyền với phương thức model và các tham số lần lượt: tên collections, schema của document

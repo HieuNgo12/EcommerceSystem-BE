@@ -12,6 +12,7 @@ import authenticationController from "./src/controllers/authenticationController
 import morgan from "morgan";
 import cors from "cors";
 import bodyParser from "body-parser";
+import UserRouter from "./src/routers/userRouter.mjs";
 
 dotenv.config();
 // phương thức connect với tham số connect string
@@ -27,8 +28,10 @@ const App = () => {
   app.use(bodyParser.json({ limit: "10mb" }));
   app.use(bodyParser.urlencoded({ extended: false, limit: "10mb" }));
   connectToMongo();
+
   ProductRouter(app);
   OrderRouter(app);
+  UserRouter(app);
 
   app.use("/api/v1/auth", AuthRouter);
   app.use("/api/v1/user", authenticationController.authMiddleware, authenticationController.isUser, UserRouter);

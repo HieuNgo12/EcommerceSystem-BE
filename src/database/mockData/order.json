@@ -1,0 +1,18 @@
+[
+    {
+        "firstName": "111",
+        "companyName": "111",
+        "streetAddress": "",
+        "apartment": "11",
+        "townCity": "11",
+        "phoneNumber": 123456787,
+        "emailAddress": "cusaniv@gmail.com",
+        "couponCode": "",
+        "paymentMethod": "",
+        "saveThisInformation": "",
+        "cardNumber": "123456789",
+        "isPaidByCard": true,
+        "isCashOnDelivery": false,
+        "subTotal": 19130
+      }
+]

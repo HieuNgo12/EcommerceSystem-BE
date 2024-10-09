@@ -59,6 +59,11 @@ const userController = {
       });
     }
   },
+  createUser: async (req, res, next) => {
+    try {
+      const { userName, email } = req.body;
+      // if (!userName) throw new Error("userName is required!");
+      // if (!email) throw new Error("email is required!");
 
   sendVerificationPhone: async (req, res, next) => {},
 
@@ -126,6 +131,38 @@ const userController = {
       });
     }
   },
+  updateUser: async (req, res, next) => {
+    try {
+      const { userName, email, address, firstName, lastName, newPassword } =
+        req.body;
+      if (!userName) throw new Error("userName is required!");
+      if (!email) throw new Error("email is required!");
+
+      const createdUser = await UsersModel.updateOne({
+        userName,
+        email,
+        address,
+        firstName,
+        lastName,
+        password: newPassword,
+      });
+      res.status(201).send({
+        data: createdUser,
+        message: "Register successful!",
+        success: true,
+      });
+    } catch (error) {
+      res.status(403).send({
+        message: error.message,
+        data: null,
+        success: false,
+      });
+    }
+  },
+  deleteUser: (req, res, next) => {
+    UsersModel.deleteOne({
+      _id: req.params.userId,
+    });
 
   verificationPhone: async (req, res, next) => {},
 

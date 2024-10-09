@@ -1,0 +1,10 @@
+[{
+    "couponCodeName": "15%",
+  
+    "discount": "15%",
+    "discountStatus":"Available",
+
+    "originalPrice": "500",
+    "finalPrice": "500",
+    "expirationTime": "500"
+  }]

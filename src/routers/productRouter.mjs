@@ -4,13 +4,13 @@ import productController from "../controllers/productController.mjs";
 const ProductRouter = (app) => {
   // Route to get all products
   app.get(
-    "/product",
+    "/all-products",
     authenticationController.isUser,
     productController.getAllProducts
   );
 
   // Route to get a specific product by ID
-  app.get("/api/v1/products/:productId", productController.getProductById);
+  app.get("/:productId", productController.getProductById);
 
   // app.post(
   //   "/product",

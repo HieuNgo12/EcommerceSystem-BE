@@ -1,48 +1,22 @@
+import express from "express";
 import authenticationController from "../controllers/authenticationController.mjs";
 import productController from "../controllers/productController.mjs";
+import validate from "../utils/validate.mjs";
 
-const ProductRouter = (app) => {
-  // Route to get all products
-  app.get(
-    "/all-products",
-    authenticationController.isUser,
-    productController.getAllProducts
-  );
+const router = express.Router();
 
-  // Route to get a specific product by ID
-  app.get("/:productId", productController.getProductById);
+router.get("/", productController.getProduct);
 
-  // app.post(
-  //   "/product",
-  //   authenticationController.isAdmin,
-  //   productController.postProduct
-  // );
-  // app.put(
-  //   "/product",
-  //   authenticationController.isAdmin,
-  //   productController.updateProduct
-  // );
-  // app.delete(
-  //   "/product/:productId",
-  //   authenticationController.isAdmin,
-  //   productController.deleteProduct
-  // );
+router.get("/:productId", productController.getProductById);
 
-  // //  authenticationController.isLogin,
+router.get("/category/:categoryId", productController.getCategoryById);
 
-  // app.post(
-  //   "/api/v1/product",
-  //   authenticationController.isAdmin,
-  //   productController.postProduct
-  // );
-  // app.put(
-  //   "/api/v1/product",
-  //   authenticationController.isAdmin,
-  //   productController.updateProduct
-  // );
-  // // app.delete("/product/:productId",authenticationController.isAdmin, productController.deleteProduct);
-  // app.delete("/api/v1/product", productController.deleteAllProducts);
+router.post("/add-product", validate.authentication, validate.auhthorizationAdmin, productController.addProduct);
 
-  // app.post("/productData", productController.createProductData);
-};
-export default ProductRouter;
+router.put("/update-all-product/:productId",validate.authentication, validate.auhthorizationAdmin, productController.updateAllProduct);
+
+router.patch("/update-product/:productId",validate.authentication, validate.auhthorizationAdmin, productController.updateProduct);
+
+router.delete("/delete-product/:productId",validate.authentication, validate.auhthorizationAdmin, productController.deleteProduct);
+
+export default router;

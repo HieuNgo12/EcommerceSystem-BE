@@ -1,19 +1,28 @@
 import UsersModel from "../database/models/users.mjs";
 import bcrypt from "bcrypt";
-import { v4 as uuidv4 } from "uuid";
 import otpGenerator from "otp-generator";
 import OtpModel from "../database/models/otp.mjs";
-import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
+import twilio from "twilio";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 
+dotenv.config();
+
+const accountSid = process.env.ACCOUNT_SID; // Thay bằng Account SID của bạn
+const authToken = process.env.AUTH_TOKEN; // Thay bằng Auth Token của bạn
+const myMail = process.env.MY_EMAIL;
+const passMyMail = process.env.PASS_EMAIL;
+const client = twilio(accountSid, authToken);
 const saltRounds = 10;
 
 const transporter = nodemailer.createTransport({
-  host: "live.smtp.mailtrap.io",
+  host: "smtp.gmail.com",
+  secure: false,
   port: 587,
   auth: {
-    user: "api", // Thay bằng email của bạn
-    pass: "cad2bc414a23600f1642f31601ca54c1", // Thay bằng mật khẩu của bạn
+    user: myMail,
+    pass: passMyMail,
   },
 });
 
@@ -67,67 +76,121 @@ const userController = {
       if (!email)
         return res.status(401).send({ message: "email is required!" });
 
-  sendVerificationPhone: async (req, res, next) => {},
+  sendVerificationPhone: async (req, res, next) => {
+    try {
+      const id = req.user.id;
+      const { phone } = req.body;
+
+      if (!phone) throw new Error("phone is required");
+      const checkId = await UsersModel.findById(id);
+      console.log(checkId);
+
+      if (checkId.phone !== phone) {
+        return res.status(403).send({
+          message: "số điện không đúng",
+          data: null,
+          success: false,
+        });
+      }
+
+      const otp = otpGenerator.generate(6, { digits: true });
+      const arrOtp = {
+        otp: otp,
+        phone: phone,
+        purpose: "VerificationPhone",
+      };
+      const newOtp = await OtpModel.create(arrOtp);
+      const formatPhoneNumber = (phone) => {
+        phone = String(phone);
+        // Nếu số điện thoại bắt đầu bằng '0' nhưng không có dấu '+'
+        if (phone.startsWith("0") && !phone.startsWith("+")) {
+          return "+84" + phone.slice(1); // Thay '0' bằng mã quốc gia '+84'
+        }
+        // Nếu số điện thoại không bắt đầu bằng '0' nhưng cũng không có dấu '+'
+        if (!phone.startsWith("+")) {
+          return "+84" + phone; // Thêm mã quốc gia Việt Nam nếu thiếu
+        }
+        return phone; // Giữ nguyên số điện thoại nếu đã có mã quốc gia
+      };
+
+      // Sử dụng hàm formatPhoneNumber trước khi gửi OTP
+      const formattedPhone = formatPhoneNumber(phone);
+
+      console.log(newOtp);
+      const message = await client.messages.create({
+        from: "+13343397546", // Số điện thoại Twilio của bạn
+        to: "+84 98 567 16 78", // Số điện thoại người nhận (bao gồm mã quốc gia)
+        body: `Your verification code is ${otp}`, // Nội dung tin nhắn chứa mã OTP
+      });
+
+      console.log(`Message SID: ${message.sid}`);
+    } catch (error) {
+      console.error("Twilio error:", error);
+      return res.status(403).send({
+        message: error.message,
+        data: null,
+        success: false,
+      });
+    }
+  },
 
   verificationEmail: async (req, res, next) => {
     try {
-      const email = req.user.email;
+      const email = req.user.email; // Lấy email từ người dùng đã đăng nhập
       let { otp } = req.body;
 
       if (!otp) throw new Error("vui lòng nhập otp");
-      else {
-        otp = otp.trim();
-      }
 
-      const maxTime = 5 * 60 * 1000;
+      const maxTime = 5 * 60 * 1000; // 5 phút
       const currentTime = new Date();
 
-      const dataOtp = await OtpModel.findOne(
-        {
-          otp: otp,
-          email: email,
-          purpose: "VerificationEmail"
-        }
-      );
-      
+      // Tìm OTP trong cơ sở dữ liệu
+      const dataOtp = await OtpModel.findOne({
+        otp: otp,
+        email: email,
+        purpose: "VerificationEmail",
+      });
 
-      console.log(dataOtp);
+      if (!dataOtp) {
+        return res.status(403).send({
+          message: "otp hoặc email không đúng",
+          data: null,
+          success: false,
+        });
+      }
 
       const counterTime = currentTime - dataOtp.createdAt;
 
-      if (counterTime < maxTime) {
-        if (dataOtp) {
-          const user = UsersModel.findOneAndUpdate({ isEmailVerified: true });
-          if (user) {
-            return res.status(200).send({
-              message: "xác thực thành công",
-              data: user,
-              success: true,
-            });
-          } else {
-            return res.status(403).send({
-              message: "xác thực thất bại",
-              data: null,
-              success: false,
-            });
-          }
-        } else {
-          return res.status(403).send({
-            message: "otp hoặc email không đúng",
-            data: null,
-            success: false,
-          });
-        }
-      } else {
+      if (counterTime >= maxTime) {
         return res.status(403).send({
           message: "otp đã hết hạn",
           data: null,
           success: false,
         });
       }
+
+      const user = await UsersModel.findOneAndUpdate(
+        { email: email },
+        { isEmailVerified: true, status: "active" },
+        { new: true }
+      );
+
+      if (user) {
+        return res.status(200).send({
+          message: "xác thực thành công",
+          data: user,
+          success: true,
+        });
+      } else {
+        return res.status(403).send({
+          message: "xác thực thất bại",
+          data: null,
+          success: false,
+        });
+      }
     } catch (error) {
       return res.status(403).send({
-        message: "lỗi",
+        message: error.message,
         data: null,
         success: false,
       });
@@ -167,10 +230,6 @@ const userController = {
     });
 
   verificationPhone: async (req, res, next) => {},
-
-  updateUser: (req, res, next) => {},
-
-  deleteUser: (req, res, next) => {},
 
   changePassword: async (req, res, next) => {
     try {
@@ -222,6 +281,51 @@ const userController = {
       }
     } catch (error) {
       return res.status(403).send({
+        message: error.message,
+        data: null,
+        success: false,
+      });
+    }
+  },
+
+  updateUser: async (req, res, next) => {
+    try {
+      const userId = req.user.userId;
+      const userData = req.body;
+
+      const updatedUser = await UsersModel.findByIdAndUpdate(userId, userData, {
+        new: true,
+      });
+      res.status(200).json({
+        message: "User updated successfully",
+        data: updatedUser,
+        success: true,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: error.message,
+        data: null,
+        success: false,
+      });
+    }
+  },
+
+  updateAllUser: async (req, res, next) => {
+    try {
+      const userId = req.user.userId;
+      const userData = req.body;
+
+      const updatedUser = await UsersModel.findByIdAndUpdate(userId, userData, {
+        new: true,
+        overwrite: true,
+      });
+      res.status(200).json({
+        message: "User updated successfully",
+        data: updatedUser,
+        success: true,
+      });
+    } catch (error) {
+      res.status(500).json({
         message: error.message,
         data: null,
         success: false,

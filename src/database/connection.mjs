@@ -10,16 +10,16 @@ const connectToMongo = async () => {
   try {
     mongoose.set("strictQuery", false);
     await mongoose.connect(mongoURI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+      useNewUrlParser: true,       // Sử dụng URL parser mới
+      useUnifiedTopology: true,    // Sử dụng engine khám phá server mới
     });
     console.log("Mongo connected");
 
     
 
   } catch (error) {
-    console.error("Error connecting to MongoDB:", error);
-    process.exit(1);
+    console.log("MongoDB connection error: ", error);
+    process.exit(1);  // Thoát nếu kết nối thất bại
   }
 };
 

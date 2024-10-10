@@ -4,84 +4,18 @@ import { v4 as uuidv4 } from "uuid";
 import otpGenerator from "otp-generator";
 import OtpModel from "../database/models/otp.mjs";
 import jwt from "jsonwebtoken";
-import UsersModel from "../database/models/users.mjs";
-import bcrypt from "bcrypt"
 const SECRET_KEY = "your_secret_key";
 const secretKey = process.env.SECRET_KEY || "mysecretkey";
 const saltRounds = 10;
 
 const authenticationController = {
   login: async (req, res, next) => {
-    const { email, password } = req.body;
-    // tìm thông tin user | tài khoản với email được gửi lên
-    const currentUser = await UsersModel.findOne({ email });
-    if (!currentUser) throw new Error("Sai tài khoản hoặc mật khẩu");
+    try {
+      let { email, password } = req.body;
 
-    const hashingPasswordLogin = bcrypt.hashSync(password, currentUser.salt);
-    // compare password
-    if (hashingPasswordLogin !== currentUser.password)
-      throw new Error("Sai tài khoản hoặc mật khẩu");
-
-    res.status(201).send({
-      message: "Login successfully!",
-      email,
-      // v.v user info
-    });
-  },
-  register: async (req, res, next) => {
-    const { email, password } = req.body;
-    // tìm thông tin user | tài khoản với email được gửi lên
-    const currentUser = await UsersModel.findOne({ email });
-    if (!currentUser) throw new Error("Sai tài khoản hoặc mật khẩu");
-
-    const hashingPasswordLogin = bcrypt.hashSync(password, currentUser.salt);
-    // compare password
-    if (hashingPasswordLogin !== currentUser.password)
-      throw new Error("Sai tài khoản hoặc mật khẩu");
-
-    res.status(201).send({
-      message: "Login successfully!",
-      email,
-      // v.v user info
-    });
-  },
-  isLogin: async (req, res, next) => 
-    {
-      const token = req.header("Authorization");
-      if (!token) {
-        return res.status(401).send({ err: "Token is expired" });
-      }
-      try {
-        jwt.verify(token, process.env.SECRET_TOKEN);
-        next();
-      } catch (err) {
-        res.status(400).send({ err: "Invalid Token" });
-      }
-    }
-  ,
-  isAdmin: async (req, res, next) => {
-    const authorization = req.headers["authorization"]?.split(" ");
-
-    if (Array.isArray(authorization)) {
-      const token = authorization[1];
-
-      if (token) {
-        const [from, userId, email, ...otherInfo] = token.split("-");
-
-        if (token == "admin") {
-          next();
-        }
-
-        req.user = {
-          from,
-          userId,
-          email,
-          otherInfo,
-        };
-
-        return next();
-      } else {
-        res.status(403).send("Unauthorized");
+      if (!email) throw new Error("email is required!");
+      else {
+        email = email.trim();
       }
       if (!password) throw new Error("password is required!");
       else {
@@ -101,6 +35,7 @@ const authenticationController = {
       } else {
         bcrypt.compare(password, checkEmail.password).then(function (result) {
           // result == true
+
           if (result && checkEmail) {
             const userData = {
               id: checkEmail.id,
@@ -109,6 +44,12 @@ const authenticationController = {
             };
 
             const token = jwt.sign(userData, secretKey, { expiresIn: "1h" });
+
+            res.cookie("auth_token", token, {
+              httpOnly: true, // Cookie chỉ được truy cập qua HTTP(S), không thể truy cập qua JavaScript
+              secure: process.env.NODE_ENV === "production", // Cookie chỉ hoạt động trên HTTPS khi ở production
+              maxAge: 3600000, // Cookie hết hạn sau 1 giờ (1h * 60m * 60s * 1000ms)
+            });
 
             return res.status(200).send({
               data: token,
@@ -131,7 +72,7 @@ const authenticationController = {
 
   register: async (req, res, next) => {
     try {
-      let { userName, email, password, gender, phone } = req.body;
+      let { userName, email, password } = req.body;
 
       if (!userName) throw new Error("userName is required!");
       else {
@@ -141,15 +82,16 @@ const authenticationController = {
       else {
         email = email.trim();
       }
+      if (!validator.isEmail(email)) {
+        return res.status(400).send({
+          message: "invalid email",
+          success: false,
+        });
+      }
       if (!password) throw new Error("password is required!");
       else {
         password = password.trim();
       }
-      // if (!address) throw new Error("address is required!");
-      // else {
-      //   address = address.trim();
-      // }
-      // if (!age) throw new Error("age is required!");
 
       const checkUserName = await UsersModel.findOne({ userName });
       const checkEmail = await UsersModel.findOne({ email });
@@ -195,8 +137,6 @@ const authenticationController = {
               userName,
               email,
               password: hashPassword,
-              phone,
-              gender, 
             });
 
             return res.status(200).send({
@@ -211,6 +151,22 @@ const authenticationController = {
       return res.status(403).send({
         message: error.message,
         data: null,
+        success: false,
+      });
+    }
+  },
+
+  logout: async (req, res, next) => {
+    try {
+      res.clearCookie("auth_token");
+      return res.status(200).send({
+        message: "Logout successful",
+        success: true,
+      });
+    } catch (error) {
+      console.error("Logout failed:", error.message);
+      return res.status(500).send({
+        message: "Logout failed",
         success: false,
       });
     }
@@ -327,49 +283,6 @@ const authenticationController = {
         success: false,
       });
     }
-  },
-
-  authMiddleware: async (req, res, next) => {
-    try {
-      const authorization = req.headers["authorization"]?.split(" ");
-
-      if (Array.isArray(authorization)) {
-        const token = authorization[1];
-
-        if (token) {
-          jwt.verify(token, secretKey, (err, decoded) => {
-            if (err) {
-              console.error("JWT verification failed:", err.message);
-            } else {
-              req.user = decoded;
-              console.log(decoded);
-              next();
-            }
-          });
-        } else {
-          res.status(403).send("Unauthorized");
-        }
-      } else {
-        res.status(403).send("Unauthorized");
-      }
-    } catch (err) {
-      console.error("JWT verification failed:", err.message);
-      return res.status(403).send("Invalid or expired token");
-    }
-  },
-
-  isUser: async (req, res, next) => {
-    if (req.user.role !== "user") {
-      return res.status(403).json({ message: "Access denied. Users only." });
-    }
-    next();
-  },
-
-  isAdmin: async (req, res, next) => {
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ message: "Access denied. Admins only." });
-    }
-    next();
   },
 };
 export default authenticationController;

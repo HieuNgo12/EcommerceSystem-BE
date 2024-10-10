@@ -1,11 +1,23 @@
+import express from "express";
 import authenticationController from "../controllers/authenticationController.mjs";
 import userController from "../controllers/userController.mjs";
-import express from "express";
 
-const UserRouter = (app) => {
-  app.get("/api/v1/user", userController.getUser);
-  app.post("/api/v1/user", userController.createUser);
-  app.put("/api/v1/user/:userId", userController.updateUser);
-  app.delete("/api/v1/user/:userId", userController.deleteUser);
-};
-export default UserRouter;
+const router = express.Router();
+
+router.post("/logout", authenticationController.logout);
+
+router.post("/send-verification-email", userController.sendVerificationEmail);
+
+router.post("/send-verification-phone", userController.sendVerificationPhone);
+
+router.post("/verify-email", userController.verificationEmail);
+
+router.post("/verify-phone", userController.verificationPhone);
+
+router.patch("/change-password", userController.changePassword);
+
+router.put("/update-all-information", userController.updateAllUser);
+
+router.patch("/update-information", userController.updateUser);
+
+export default router;

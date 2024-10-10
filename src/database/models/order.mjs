@@ -2,13 +2,15 @@ import mongoose from "mongoose";
 
 const orderModel = new mongoose.Schema(
   {
+    orderId: { type: mongoose.Schema.Types.ObjectId },
+
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
 
       ref: "user",
     },
-    item: {
-      type: mongoose.Schema.Types.ObjectId,
+    itemId: {
+      type: String,
 
       ref: "products",
     },
@@ -36,20 +38,24 @@ const orderModel = new mongoose.Schema(
     emailAdress: {
       type: String,
     },
+    townCity: {
+      type: String,
+    },
+    couponCode: {
+      type: String,
+    },
     paymentMethod: {
       type: String,
-      default: 'Cash',
-      enum: ['Cash', 'Credit']
+      default: "Cash",
+      enum: ["Cash", "Credit"],
     },
     cardNumber: {
       type: String,
-      default: 'Cash',
-      enum: ['Cash', 'Credit']
     },
     status: {
       type: String,
-      enum: ["waiting", "confirmed", "deliver", "success"], //waiting, confirmed, deliver, success
-      default: "waiting",
+      enum: ["pending", "confirmed", "deliver", "success"], //waiting, confirmed, deliver, success
+      default: "pending",
     },
   },
   {

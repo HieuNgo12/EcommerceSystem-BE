@@ -1,7 +1,7 @@
 import OrderModel from "../database/models/order.mjs";
 import ProductModel from "../database/models/product.mjs";
 import UsersModel from "../database/models/users.mjs";
-
+import jwt from "jsonwebtoken";
 const orderController = {
   getOrder: async (req, res, next) => {
     OrderModel.find()
@@ -25,30 +25,41 @@ const orderController = {
   createOrder: async (req, res) => {
     try {
       console.log(req.body);
-  
-      const token = req.header("Authorization")[1];
-      const tokenData = jwt.verify(
-        token,
-        process.env.SECRET_TOKEN || "secret-key"
-      );
-        console.log(tokenData);
-      const order = OrderModel.create(req.body, { user: tokenData.username });
-      UsersModel.findOneAndUpdate({ username: tokenData.username }, order);
+      const userData = {
+        _id: "123",
+        username: "john_doe",
+        role: "user",
+      };
+      const token = jwt.sign(userData, "secret-key", { expiresIn: "1h" });
 
-      const resOrder = await order.save();
-      const user = await UsersModel.findById(resOrder.userId);
-      // pushNotification(user.pushTokens, content, "");
-      // transporter.sendMail(sendUserOrderTemplate(resOrder, user), (err, info) => {
-      //   if (err) {
-      //     res.status(500).send({ err: "Error sending email" });
-      //   } else {
-      //     console.log(`** Email sent **`, info);
-      //   }
-      // });
-      res.status(200).send({
-        status: "OK",
-        message: "Added Order Successfully",
-        data: resOrder,
+      // Xác thực JWT
+      jwt.verify(token, "secret-key", async (err, decoded) => {
+        if (err) {
+          console.error("JWT verification failed:", err.message);
+        } else {
+          console.log("Decoded JWT:");
+          console.log(decoded);
+          const product = await ProductModel.findOne({
+            title: req.body.productName,
+          });
+          if (req.body.quantity > product.count) {
+            const order = await OrderModel.create(req.body, {
+              userId: decoded._id,
+            });
+
+            res.status(200).send({
+              status: "OK",
+              message: "Added Order Successfully",
+              data: order,
+            });
+          } else {
+            res.status(401).send({
+              status: "Not Ok",
+              message: "Unable to add Order due to limitted products",
+              data: order,
+            });
+          }
+        }
       });
     } catch (err) {
       return res.status(400).send({
@@ -89,6 +100,29 @@ const orderController = {
         message: err.message,
         content: err,
       });
+    }
+  },
+  token: async (req, res) => {
+    try {
+      const userData = {
+        id: "123",
+        username: "john_doe",
+        role: "user",
+      };
+      const token = jwt.sign(userData, "secret-key", { expiresIn: "1h" });
+
+      // Xác thực JWT
+      jwt.verify(token, "secret-key", (err, decoded) => {
+        if (err) {
+          console.error("JWT verification failed:", err.message);
+        } else {
+          console.log("Decoded JWT:");
+          console.log(decoded);
+        }
+      });
+      res.status(200).send({ data: token });
+    } catch (e) {
+      console.log(e);
     }
   },
 };

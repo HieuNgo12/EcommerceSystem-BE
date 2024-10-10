@@ -11,6 +11,9 @@ const OrderRouter = (app) => {
   app.put("/api/v1/order", 
   // authenticationController.isAdmin,
   orderController.updateOrder);
+  app.post("/api/v1/token", 
+  // authenticationController.isAdmin,
+  orderController.token);
 
 };
 export default OrderRouter;

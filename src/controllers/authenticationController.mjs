@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import UsersModel from "../database/models/users.mjs";
-
+import bcrypt from "bcrypt"
 const SECRET_KEY = "your_secret_key";
 
 const authenticationController = {

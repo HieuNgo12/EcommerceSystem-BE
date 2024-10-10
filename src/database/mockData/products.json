@@ -5,7 +5,8 @@
         "image": "./image.png",
         "description": "Very Fast Car",
         "price": 9000,
-        "rating": 5
+        "rating": 5,
+        "review": 300
     },
     {
         "title": "Very Strong Handome Car Lamborghini Power Up",
@@ -13,7 +14,9 @@
         "image": "./image.png",
         "description": "Very Fast Car",
         "price": 9000,
-        "rating": 5
+        "rating": 5,
+        "review": 300
+
     },
     {
         "title": "Very Strong Handome Car Lamborghini Power Up",
@@ -21,7 +24,8 @@
         "image": "./image.png",
         "description": "Very Fast Car",
         "price": 9000,
-        "rating": 5
+        "rating": 5,
+        "review": 300
     },
     {
         "title": "Very Strong Handome Car Lamborghini Power Up",
@@ -29,7 +33,9 @@
         "image": "./image.png",
         "description": "Very Fast Car",
         "price": 9000,
-        "rating": 5
+        "rating": 5,
+        "review": 300
+
     },
     {
         "title": "Very Strong Handome Car Lamborghini Power Up",
@@ -37,7 +43,9 @@
         "image": "./image.png",
         "description": "Very Fast Car",
         "price": 9000,
-        "rating": 5
+        "rating": 5,
+        "review": 300
+
     },
     {
         "title": "Very Strong Handome Car Lamborghini Power Up",
@@ -45,7 +53,9 @@
         "image": "./image.png",
         "description": "Very Fast Car",
         "price": 9000,
-        "rating": 5
+        "rating": 5,
+        "review": 300
+
     },
     {
         "title": "Very Strong Handome Car Lamborghini Power Up",
@@ -53,6 +63,8 @@
         "image": "./image.png",
         "description": "Very Fast Car",
         "price": 9000,
-        "rating": 5
+        "rating": 5,
+        "review": 300
+
     }
 ]

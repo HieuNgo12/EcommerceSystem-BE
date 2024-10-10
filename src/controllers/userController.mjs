@@ -68,13 +68,6 @@ const userController = {
       });
     }
   },
-  createUser: async (req, res, next) => {
-    try {
-      const { userName, email } = req.body;
-      if (!userName)
-        return res.status(401).send({ message: "userName is required!" });
-      if (!email)
-        return res.status(401).send({ message: "email is required!" });
 
   sendVerificationPhone: async (req, res, next) => {
     try {
@@ -224,10 +217,6 @@ const userController = {
       });
     }
   },
-  deleteUser: (req, res, next) => {
-    UsersModel.deleteOne({
-      _id: req.params.userId,
-    });
 
   verificationPhone: async (req, res, next) => {},
 

@@ -10,15 +10,17 @@ import UserRouter from "./src/routers/userRouter.mjs";
 import AdminRouter from "./src/routers/adminRouter.mjs";
 import authenticationController from "./src/controllers/authenticationController.mjs";
 import morgan from "morgan";
-import cors from "cors";
 import bodyParser from "body-parser";
+import  validate  from "./src/utils/validate.mjs";
+import jwt from 'jsonwebtoken';
+import cookieParser from "cookie-parser"; 
 
 dotenv.config();
 // phương thức connect với tham số connect string
 const app = express();
 app.use(cors());
 app.use(express.json());
-
+app.use(cookieParser()); 
 const App = () => {
   app.use(morgan("dev"));
   // app.use("/public", express.static(path.join(__dirname, "public")));
@@ -27,12 +29,12 @@ const App = () => {
   app.use(bodyParser.json({ limit: "10mb" }));
   app.use(bodyParser.urlencoded({ extended: false, limit: "10mb" }));
   connectToMongo();
-  ProductRouter(app);
   OrderRouter(app);
 
   app.use("/api/v1/auth", AuthRouter);
-  app.use("/api/v1/user", authenticationController.authMiddleware, authenticationController.isUser, UserRouter);
-  app.use("/ap1/v1/admin", authenticationController.authMiddleware, authenticationController.isAdmin, AdminRouter)
+  app.use("/api/v1/users", validate.authentication, validate.auhthorizationUser, UserRouter);
+  app.use("/api/v1/admin", validate.authentication, validate.auhthorizationAdmin, AdminRouter)
+  app.use("/api/v1/products", ProductRouter)
 
   if (process.env.NODE_ENV === "dev") {
     app.listen(8080, () => {

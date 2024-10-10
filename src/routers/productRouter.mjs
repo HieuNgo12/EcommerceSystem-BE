@@ -1,11 +1,22 @@
+import express from "express";
 import authenticationController from "../controllers/authenticationController.mjs";
 import productController from "../controllers/productController.mjs";
+import validate from "../utils/validate.mjs";
 
-const ProductRouter = (app) => {
-  app.get("/product", authenticationController.isUser, productController.getProduct);
-  app.post("/product", authenticationController.isAdmin, productController.postProduct);
-  app.put("/product", authenticationController.isAdmin,productController.updateProduct);
-  app.delete("/product/:productId",authenticationController.isAdmin, productController.deleteProduct);
+const router = express.Router();
 
-};
-export default ProductRouter;
+router.get("/", productController.getProduct);
+
+router.get("/:productId", productController.getProductById);
+
+router.get("/category/:categoryId", productController.getCategoryById);
+
+router.post("/add-product", validate.authentication, validate.auhthorizationAdmin, productController.addProduct);
+
+router.put("/update-all-product/:productId",validate.authentication, validate.auhthorizationAdmin, productController.updateAllProduct);
+
+router.patch("/update-product/:productId",validate.authentication, validate.auhthorizationAdmin, productController.updateProduct);
+
+router.delete("/delete-product/:productId",validate.authentication, validate.auhthorizationAdmin, productController.deleteProduct);
+
+export default router;

@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken";
 const SECRET_KEY = "your_secret_key";
 const secretKey = process.env.SECRET_KEY || "mysecretkey";
 const saltRounds = 10;
+import validator from "validator";
 
 const authenticationController = {
   login: async (req, res, next) => {

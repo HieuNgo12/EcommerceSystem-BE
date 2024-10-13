@@ -79,7 +79,7 @@ const productController = {
       const product = await ProductModel.create(req.body);
       res.status(201).send({
         data: product,
-        message: "add prodcut successfully!",
+        message: "add product successfully!",
         success: true,
       });
     } catch (error) {

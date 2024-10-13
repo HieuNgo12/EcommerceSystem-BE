@@ -5,6 +5,7 @@ const OtpSchema = new mongoose.Schema(
     otp: { type: String, require: true },
     email: { type: String, require: true },
     purpose : { type: String , require : true},
+    phone : { type: String , require : true},
     // createdAt: {
     //   type: Date,
     //   default: Date.now,

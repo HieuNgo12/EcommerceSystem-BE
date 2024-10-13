@@ -1,22 +1,16 @@
 import express from "express";
 import multer from "multer";
+import { v2 as cloudinary } from 'cloudinary';
+import FileController from "../controllers/fileController.mjs";
+
 // Khởi tạo tùy chọn lưu trữ memoryStorage
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
+const router = express.Router();
 
-// Xử lý yêu cầu tải lên tệp
-app.post("/upload", upload.single("file"), (req, res) => {
-  // Truy cập dữ liệu tệp từ req.file
-  const file = req.file;
+router.post("/single-upload", upload.single("file"), FileController.singleUploadForUser);
 
-  if (!file) {
-    return res.status(400).json({ error: "Không có tệp được tải lên." });
-  }
+router.post("/multi-upload", upload.array("files"), FileController.multiUploadForUser);
 
-  // Trả về phản hồi với thông tin về tệp đã tải lên
-  res.json({ message: "Tệp được tải lên thành công.", data: file });
-});
 
-app.listen(port, () => {
-  console.log(`Server is running!`);
-});
+export default router;

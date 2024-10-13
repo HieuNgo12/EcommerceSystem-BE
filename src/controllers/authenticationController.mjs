@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from "uuid";
 import otpGenerator from "otp-generator";
 import OtpModel from "../database/models/otp.mjs";
 import jwt from "jsonwebtoken";
+import validator from 'validator';
+
 const SECRET_KEY = "your_secret_key";
 const secretKey = process.env.SECRET_KEY || "mysecretkey";
 const saltRounds = 10;
@@ -74,7 +76,7 @@ const authenticationController = {
   register: async (req, res, next) => {
     try {
       let { userName, email, password } = req.body;
-
+      console.log(email)
       if (!userName) throw new Error("userName is required!");
       else {
         userName = userName.trim();

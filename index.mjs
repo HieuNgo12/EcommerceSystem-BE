@@ -8,13 +8,14 @@ import cors from "cors";
 import AuthRouter from "./src/routers/authRouter.mjs";
 import UserRouter from "./src/routers/userRouter.mjs";
 import AdminRouter from "./src/routers/adminRouter.mjs";
+import UploadFile from "./src/utils/UploadFile.mjs"
 import authenticationController from "./src/controllers/authenticationController.mjs";
 import morgan from "morgan";
 import bodyParser from "body-parser";
-import ReviewRouter from "./src/routers/reviewRouter.mjs";
-import validate from "./src/utils/validate.mjs";
-import jwt from "jsonwebtoken";
-import cookieParser from "cookie-parser";
+import  validate  from "./src/utils/validate.mjs";
+import jwt from 'jsonwebtoken';
+import cookieParser from "cookie-parser"; 
+import { v2 as cloudinary } from 'cloudinary';
 
 dotenv.config();
 
@@ -33,22 +34,17 @@ const App = () => {
   // UserRouter(app);
 
   app.use("/api/v1/auth", AuthRouter);
-  app.use(
-    "/api/v1/users",
-    validate.authentication,
-    validate.auhthorizationUser,
-    UserRouter
-  );
-  app.use(
-    "/api/v1/admin",
-    validate.authentication,
-    validate.auhthorizationAdmin,
-    AdminRouter
-  );
-  app.use("/api/v1/products", ProductRouter);
-  app.use("/api/v1/product", ReviewRouter);
+  app.use("/api/v1/users", validate.authentication, validate.auhthorizationUser, UserRouter);
+  app.use("/api/v1/admin", validate.authentication, validate.auhthorizationAdmin, AdminRouter)
+  app.use("/api/v1/products", ProductRouter)
+  // app.use("/api/v1/images",validate.authentication, UploadFile )
 
-  // Start server locally if in development mode
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+
   if (process.env.NODE_ENV === "dev") {
     app.listen(8080, () => {
       console.log(
@@ -58,6 +54,11 @@ const App = () => {
   }
 };
 App();
+// You don't need to listen to the port when using serverless functions in production
+
+
+
+
 export const handler = Serverless(app);
 
 // App();

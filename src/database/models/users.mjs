@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema(
     // firstName: { type: String, require: true },
     // lastName: { type: String, require: true },
     gender: { type: String, enum: ['male', 'female', 'other'], required: false }, //update gender option
+    // gender: { type: Boolean, required: true },
     // dateOfBirth: { type: Date , require : true},
     // address: { type: String, require: true },
     phone: { type: Number, require: true },

@@ -36,7 +36,7 @@ const authMiddleware = {
             console.error("JWT verification failed:", err.message);
           } else {
             req.user = decoded;
-            // console.log(decoded);
+            console.log(decoded);
             next();
           }
         });
@@ -52,8 +52,25 @@ const authMiddleware = {
       return res.status(403).send("Invalid or expired token");
     }
   },
-  
-  refreshToken: async (req, res, next) => {},
+
+  refreshToken: async (req, res, next) => {
+    const token =
+      req.headers["authorization"] &&
+      req.headers["authorization"].split(" ")[1];
+    const decoded = jwtDecode(token);
+
+    const dateNow = new Date();
+
+    //token exprire
+    if (decoded.exp < dateNow.getTime() / 1000) {
+      const token = jwt.sign({ id: decoded.id, claim: decoded.claim }, key, {
+        expiresIn: "1h",
+      });
+      res.json({ accsseccessToken: token });
+    } else {
+      res.json({ token: token });
+    }
+  },
 };
 
 export default authMiddleware;

@@ -1,7 +1,11 @@
 import express from "express";
 import authenticationController from "../controllers/authenticationController.mjs";
 import userController from "../controllers/userController.mjs";
+import multer from "multer";
+import FileController from "../controllers/fileController.mjs";
 
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 const router = express.Router();
 
 router.post("/logout", authenticationController.logout);
@@ -16,8 +20,14 @@ router.post("/verify-phone", userController.verificationPhone);
 
 router.patch("/change-password", userController.changePassword);
 
-router.put("/update-all-information", userController.updateAllUser);
+router.put("/update-all-profile", userController.updateAllUser);
 
-router.patch("/update-information", userController.updateUser);
+router.patch("/update-profile", userController.updateUser);
+
+router.get("/profile", userController.profile);
+
+router.post("/single-upload", upload.single("file"), FileController.singleUploadForUser);
+
+router.post("/multi-upload", upload.array("files"), FileController.multiUploadForUser);
 
 export default router;

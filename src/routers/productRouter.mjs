@@ -5,7 +5,7 @@ import validate from "../utils/validate.mjs";
 
 const router = express.Router();
 
-router.get("/", productController.getProduct);
+router.get("/", productController.getAllProducts);
 
 router.get("/:productId", productController.getProductById);
 

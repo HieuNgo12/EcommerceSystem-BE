@@ -1,6 +1,9 @@
 import authenticationController from "../controllers/authenticationController.mjs";
 import paymentController from "../controllers/paymentController.mjs";
 
+const router = express.Router();
+
+
 const PaymentRouter = (app) => {
   app.get(
     "api/v1/payment",
@@ -9,12 +12,12 @@ const PaymentRouter = (app) => {
   );
   app.post(
     "api/v1/payment",
-    authenticationController.isAdmin,
+    // authenticationController.isAdmin,
     paymentController.postPayment
   );
   app.put(
     "api/v1/payment",
-    authenticationController.isAdmin,
+    // authenticationController.isAdmin,
     paymentController.updatePayment
   );
   // app.delete("/payment/:paymentId",authenticationController.isAdmin, paymentController.deletePayment);

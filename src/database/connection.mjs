@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Updated connection string format
-const mongoURI = `mongodb+srv://${process.env.NAME}:${process.env.PASSWORD}@exclusive.izqci.mongodb.net/yourDatabaseName?retryWrites=true&w=majority&appName=Exclusive%2Ftest`;
+const mongoURI = `mongodb+srv://${process.env.NAME}:${process.env.PASSWORD}@exclusive.izqci.mongodb.net/yourDatabaseName?retryWrites=true&w=majority&appName=Exclusive%2FExclusive`;
 
 const connectToMongo = async () => {
   try {

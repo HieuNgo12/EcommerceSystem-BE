@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 
 const orderModel = new mongoose.Schema(
   {
-    orderId: { type: mongoose.Schema.Types.ObjectId },
 
     userId: {
       type: String,
@@ -54,8 +53,8 @@ const orderModel = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "confirmed", "deliver", "success"], //waiting, confirmed, deliver, success
-      default: "pending",
+      enum: ["Waiting", "Confirmed", "Cancelled", "Deliver", "Success"], //waiting, confirmed, deliver, success
+      default: "Waiting",
     },
   },
   {

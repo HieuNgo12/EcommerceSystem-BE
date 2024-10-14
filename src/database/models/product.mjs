@@ -2,21 +2,21 @@ import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema(
   {
-    title: { type: String, require: true },
-    category: { type: String, require: true },
-    color: { type: String, require: true },
-    image: { type: String, require: true },
-    description: { type: String, require: true },
-    price: { type: String, require: true },
-    slug: { type: String, require: true },
-    sku: { type: String, require: true },
-    stockQuantity: { type: Number, required: true, default: 0 },
+    title: { type: String },
+    category: { type: String },
+    color: { type: String },
+    image: { type: String },
+    description: { type: String },
+    price: { type: String },
+    slug: { type: String },
+    sku: { type: String },
+    stockQuantity: { type: Number, default: 0 },
     brand: { type: String, default: "" },
     discount: { type: Number, default: 0 },
     weight: { type: Number, default: 0 },
     dimensions: {
       length: { type: Number, default: 0 },
-      width: { type: Number, default : 0 },
+      width: { type: Number, default: 0 },
       height: { type: Number, default: 0 },
     },
     isFeatured: { type: Boolean, default: false },
@@ -58,12 +58,12 @@ const productSchema = new mongoose.Schema(
         ],
       },
     },
-    status: { 
-      type: String, 
-      required: true, 
-      enum: ['available', 'out_of_stock', 'discontinued', 'pre_order'],  // Chỉ cho phép các giá trị này
-      default: 'available'  // Giá trị mặc định là "available"
-    }
+    status: {
+      type: String,
+
+      enum: ["available", "out_of_stock", "discontinued", "pre_order"], // Chỉ cho phép các giá trị này
+      default: "available", // Giá trị mặc định là "available"
+    },
   },
   { timestamps: true }
 );

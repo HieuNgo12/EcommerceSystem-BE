@@ -1,12 +1,21 @@
+import DeliveryModel from "../database/models/delivery.mjs";
 import OrderModel from "../database/models/order.mjs";
+import PaymentModel from "../database/models/payment.mjs";
 import ProductModel from "../database/models/product.mjs";
 import UsersModel from "../database/models/users.mjs";
 import jwt from "jsonwebtoken";
 const orderController = {
   getOrder: async (req, res, next) => {
+    const limit = req.query.limit;
     OrderModel.find()
-      .populate("items.item")
+      .populate("paymentId")
       .populate("userId")
+      .populate("deliverId")
+      .limit(limit)
+      .skip(limit * page)
+      .sort({
+        name: "asc",
+      })
       .then((data) => {
         return res.status(200).send({
           status: "OK",
@@ -42,9 +51,19 @@ const orderController = {
           const product = await ProductModel.findOne({
             title: req.body.productName,
           });
-          if (req.body.quantity > product.count) {
+
+          // if (req.body.quantity > product.count) {
+            const delivery = await DeliveryModel.create({
+              userId: decoded._id,
+            });
+
+            const payment = await PaymentModel.create({
+              userId: decoded._id,
+            });
             const order = await OrderModel.create(req.body, {
               userId: decoded._id,
+              paymentId: payment._id,
+              deliveryId: delivery._id,
             });
 
             res.status(200).send({
@@ -52,13 +71,13 @@ const orderController = {
               message: "Added Order Successfully",
               data: order,
             });
-          } else {
-            res.status(401).send({
-              status: "Not Ok",
-              message: "Unable to add Order due to limitted products",
-              data: order,
-            });
-          }
+          // } else {
+          //   res.status(401).send({
+          //     status: "Not Ok",
+          //     message: "Unable to add Order due to limitted products",
+          //     data: order,
+          //   });
+          // }
         }
       });
     } catch (err) {

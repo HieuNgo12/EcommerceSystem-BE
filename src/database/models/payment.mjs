@@ -7,8 +7,8 @@ const paymentModel = new mongoose.Schema(
       // Current status of payment
       type: String,
       required: true,
-      default: "Failed",
-      enum: ["Pending","Failed", "Successful"]
+      default: "Pending",
+      enum: ["Pending", "Failed", "Successful"],
     },
     paymentId: {
       type: String,
@@ -19,7 +19,7 @@ const paymentModel = new mongoose.Schema(
       ref: "user",
     },
   },
-  { autoCreate: true, autoIndex: true }
+  { autoCreate: true, autoIndex: true, timestamps: true }
 );
 
 const PaymentModel = mongoose.model("payment", paymentModel);

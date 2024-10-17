@@ -32,8 +32,12 @@ const deliveryModel = new mongoose.Schema(
 
       default: () => new Date(+new Date() + 2 * 24 * 60 * 60 * 1000),
     },
+    deliveryStatus: {
+      type: String,
+      default: "Checking"
+    }
   },
-  { autoCreate: true, autoIndex: true }
+  { autoCreate: true, autoIndex: true, timestamps: true }
 );
 
 const DeliveryModel = mongoose.model("delivery", deliveryModel);

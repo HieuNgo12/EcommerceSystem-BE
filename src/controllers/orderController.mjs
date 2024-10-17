@@ -7,16 +7,24 @@ import jwt from "jsonwebtoken";
 const orderController = {
   getOrder: async (req, res, next) => {
     const limit = req.query.limit;
+    const page = req.query.page;
+    const query = req.query.query;
     OrderModel.find()
       .populate("paymentId")
-      .populate("userId")
-      .populate("deliverId")
+      // .populate("userId")
+      .populate("deliveryId")
+      .populate("productId")
       .limit(limit)
       .skip(limit * page)
       .sort({
         name: "asc",
       })
+      // .where(
+      //   { productId: { title: query } }
+      //   // { $group: { _id: '$customerId', totalAmount: { $sum: '$totalAmount' } } }
+      // )
       .then((data) => {
+        console.log(data);
         return res.status(200).send({
           status: "OK",
           message: "Get Orders Successfully",
@@ -33,14 +41,13 @@ const orderController = {
   },
   createOrder: async (req, res) => {
     try {
-      console.log(req.body);
       const userData = {
         _id: "123",
         username: "john_doe",
         role: "user",
       };
       const token = jwt.sign(userData, "secret-key", { expiresIn: "1h" });
-
+      console.log(req.body);
       // Xác thực JWT
       jwt.verify(token, "secret-key", async (err, decoded) => {
         if (err) {
@@ -49,28 +56,34 @@ const orderController = {
           console.log("Decoded JWT:");
           console.log(decoded);
           const product = await ProductModel.findOne({
-            title: req.body.productName,
+            title: req.body.body.productName,
+          });
+          // console.log( req.body.productName);
+          // if (req.body.quantity > product.count) {
+          const delivery = await DeliveryModel.create({
+            userId: decoded._id,
           });
 
-          // if (req.body.quantity > product.count) {
-            const delivery = await DeliveryModel.create({
-              userId: decoded._id,
-            });
-
-            const payment = await PaymentModel.create({
-              userId: decoded._id,
-            });
-            const order = await OrderModel.create(req.body, {
-              userId: decoded._id,
-              paymentId: payment._id,
-              deliveryId: delivery._id,
-            });
-
-            res.status(200).send({
-              status: "OK",
-              message: "Added Order Successfully",
-              data: order,
-            });
+          const payment = await PaymentModel.create({
+            userId: decoded._id,
+          });
+          const ref = {
+            userId: decoded._id,
+            paymentId: payment._id,
+            deliveryId: delivery._id,
+            productId: product?._id ? product?._id : null,
+          };
+          const body = {
+            ...ref,
+            ...req.body.body,
+          };
+          const order = await OrderModel.create(body);
+          console.log(order);
+          res.status(200).send({
+            status: "OK",
+            message: "Added Order Successfully",
+            data: order,
+          });
           // } else {
           //   res.status(401).send({
           //     status: "Not Ok",
@@ -81,6 +94,7 @@ const orderController = {
         }
       });
     } catch (err) {
+      console.log(err);
       return res.status(400).send({
         status: "ERR_SERVER",
         message: err.message,

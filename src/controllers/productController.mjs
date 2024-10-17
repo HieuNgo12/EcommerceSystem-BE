@@ -3,15 +3,16 @@ import ProductModel from "../database/models/product.mjs";
 const productController = {
   getProduct: async (req, res, next) => {
     try {
-      const product = await ProductModel.find({}).populate("reviewId");
+      const product = await ProductModel.find({})
+      // .populate("reviewId");
       res.status(201).send({
         data: product,
         message: "User found successfully!",
         success: true,
       });
-    } catch {
+    } catch (e) {
       return res.status(403).send({
-        message: error.message,
+        message: e.message,
         data: null,
         success: false,
       });

@@ -11,13 +11,19 @@ const router = express.Router();
 
 router.post("/logout", authenticationController.logout);
 
-router.get("/", AdminController.getUsers);
+router.get("/get-users", AdminController.getUsers);
 
-router.put("/user-update/:userId", AdminController.updateAllUser);
+router.put("/update-all-profile/:userId", AdminController.updateAllUser);
 
-router.patch("/user-update/:userId", AdminController.updateUser);
+router.patch("/update-profile/:userId", AdminController.updateUser);
 
 router.delete("/user-delete/:userId", AdminController.deleteUser);
+
+router.post("/single-upload", upload.single("file"), FileController.singleUploadForUser);
+
+router.post("/multi-upload", upload.array("files"), FileController.multiUploadForUser);
+
+router.post("/refresh-token", authenticationController.refreshToken);
 
 router.post("/single-upload", upload.single("file"), FileController.singleUploadForUser);
 

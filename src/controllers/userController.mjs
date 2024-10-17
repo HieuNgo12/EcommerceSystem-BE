@@ -13,8 +13,6 @@ import { v2 as cloudinary } from "cloudinary";
 
 dotenv.config();
 
-const myMail = process.env.MY_EMAIL;
-const passMyMail = process.env.PASS_EMAIL;
 const saltRounds = 10;
 
 const transporter = nodemailer.createTransport({
@@ -22,8 +20,8 @@ const transporter = nodemailer.createTransport({
   secure: false,
   port: 587,
   auth: {
-    user: myMail,
-    pass: passMyMail,
+    user: process.env.MY_EMAIL,
+    pass: process.env.PASS_EMAIL,
   },
 });
 
@@ -38,6 +36,7 @@ const userController = {
         purpose: "VerificationEmail",
       };
       const newOtp = await OtpModel.create(arrOtp);
+      const currentDate = new Date();
 
       const mailOptions = {
         from: "info@test.com", // Địa chỉ email gửi
@@ -49,18 +48,19 @@ const userController = {
       await transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
           console.log("Error sending email:", error);
+          return res.status(400).send({
+            message: "error",
+            success: false,
+          });
         } else {
           console.log("Email sent: " + info.response);
+          return res.status(200).send({
+            message: "otp is sent",
+            data: info.response,
+            success: true,
+          });
         }
       });
-
-      if (newOtp) {
-        return res.status(200).send({
-          message: "otp is sent",
-          data: newOtp,
-          success: true,
-        });
-      }
     } catch (error) {
       return res.status(403).send({
         message: error.message,

@@ -4,18 +4,33 @@ import { v4 as uuidv4 } from "uuid";
 import otpGenerator from "otp-generator";
 import OtpModel from "../database/models/otp.mjs";
 import jwt from "jsonwebtoken";
-import validator from 'validator';
+import validator from "validator";
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+dotenv.config();
 
-const SECRET_KEY = "your_secret_key";
+//jwt
 const secretKey = process.env.SECRET_KEY || "mysecretkey";
 const saltRounds = 10;
 
+// nodemailder
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  secure: false,
+  port: 587,
+  auth: {
+    user: process.env.MY_EMAIL,
+    pass: process.env.PASS_EMAIL,
+  },
+});
+let refreshTokens = [];
+console.log(refreshTokens)
 const authenticationController = {
   login: async (req, res, next) => {
     try {
       let { email, password } = req.body;
 
-      if (!email) throw new Error("email is required!");
+      if (!email) throw new Error("Email is required!");
       else {
         email = email.trim();
       }
@@ -28,129 +43,162 @@ const authenticationController = {
         email: email,
       });
 
-      if (!checkEmail) {
-        res.status(403).send({
-          message: "email is incorrect",
-          data: null,
-          success: false,
-        });
-      } else {
-        bcrypt.compare(password, checkEmail.password).then(function (result) {
-          // result == true
+      if (!checkEmail) throw new Error("Email is incorrect");
 
-          if (result && checkEmail) {
-            const userData = {
-              id: checkEmail.id,
-              email: checkEmail.email,
-              role: checkEmail.role,
-            };
+      bcrypt.compare(password, checkEmail.password).then(function (result) {
+        // result == true
+        if (result && checkEmail) {
+          const userData = {
+            id: checkEmail.id,
+            email: checkEmail.email,
+            role: checkEmail.role,
+          };
 
-            const token = jwt.sign(userData, secretKey, { expiresIn: "1h" });
+          const accesstoken = jwt.sign(userData, secretKey, {
+            expiresIn: "2m",
+          });
 
-            res.cookie("auth_token", token, {
-              httpOnly: true, // Cookie chỉ được truy cập qua HTTP(S), không thể truy cập qua JavaScript
-              secure: process.env.NODE_ENV === "production", // Cookie chỉ hoạt động trên HTTPS khi ở production
-              maxAge: 3600000, // Cookie hết hạn sau 1 giờ (1h * 60m * 60s * 1000ms)
-            });
+          const refreshToken = jwt.sign(userData, secretKey, {
+            expiresIn: "365d",
+          });
 
-            return res.status(200).send({
-              data: token,
-              message: "Login successful!",
-              success: true,
-            });
-          } else {
-            res.status(403).send({
-              message: "Password is incorrect",
-              data: null,
-              success: false,
-            });
-          }
-        });
-      }
+          refreshTokens.push(refreshToken);
+
+          res.cookie("refreshToken", refreshToken, {
+            httpOnly: true, // Cookie không thể truy cập qua JavaScript (bảo mật hơn)
+            secure: false, // Sử dụng HTTPS trong production
+            path: "/",
+            sameSite: "None", // Cần thiết nếu frontend và backend ở các domain khác nhau
+            // maxAge: 3600000, // Thời hạn cookie 1 giờ
+          });
+
+          return res.status(200).send({
+            data: accesstoken,
+            message: "Login successful!",
+            success: true,
+          });
+        } else {
+          res.status(400).send({
+            message: "Password is incorrect",
+            data: null,
+            success: false,
+          });
+        }
+      });
     } catch (error) {
-      res.status(403).send("Unauthorized");
+      return res.status(400).send({
+        message: error.message,
+        data: null,
+        success: false,
+      });
     }
+  },
+
+  refreshToken: async (req, res, next) => {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) throw new Error("You are not authenticated.");
+    if (!refreshTokens.includes(refreshToken))
+      throw new Error("Refresh token is not valid.");
+    jwt.verify(refreshToken, secretKey, (err, user) => {
+      if (err) {
+        console.log(err);
+      }
+      refreshTokens = refreshTokens.filter((token) => token === refreshToken);
+      const userData = {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      };
+      const newAccesstoken = jwt.sign(userData, secretKey, {
+        expiresIn: "1h",
+      });
+
+      const newRefreshToken = jwt.sign(userData, secretKey);
+
+      refreshTokens.push(newRefreshToken);
+
+      res.cookie("refreshToken", newRefreshToken, {
+        httpOnly: true, // Cookie không thể truy cập qua JavaScript (bảo mật hơn)
+        secure: false, // Sử dụng HTTPS trong production
+        path: "/",
+        sameSite: "None", // Cần thiết nếu frontend và backend ở các domain khác nhau
+        // maxAge: 3600000, // Thời hạn cookie 1 giờ
+      });
+      res.status(200).json({ accesstoken: newAccesstoken });
+    });
   },
 
   register: async (req, res, next) => {
     try {
-      let { userName, email, password } = req.body;
-      console.log(email)
-      if (!userName) throw new Error("userName is required!");
+      let { username, email, password, confirm } = req.body;
+      console.log(confirm);
+      if (!username) throw new Error("Username is required!");
       else {
-        userName = userName.trim();
+        username = username.trim();
       }
-      if (!email) throw new Error("email is required!");
+      const checkUserNameHasAdminWord = email.includes("admin");
+      if (checkUserNameHasAdminWord)
+        throw new Error("Username does not include admin");
+
+      const checkUserName = await UsersModel.findOne({ username });
+      if (checkUserName) throw new Error("Username already exists");
+
+      if (!email) throw new Error("Email is required!");
       else {
         email = email.trim();
       }
-      if (!validator.isEmail(email)) {
-        return res.status(400).send({
-          message: "invalid email",
-          success: false,
-        });
-      }
-      if (!password) throw new Error("password is required!");
-      else {
-        password = password.trim();
-      }
+      if (!validator.isEmail(email)) throw new Error("Invalid email");
 
-      const checkUserName = await UsersModel.findOne({ userName });
+      const checkEmailHasAdminWord = email.includes("admin");
+      if (checkEmailHasAdminWord)
+        throw new Error("Email does not include admin");
+
       const checkEmail = await UsersModel.findOne({ email });
 
-      if (checkUserName) {
-        return res.status(403).send({
-          message: "Username already exists",
-          data: null,
-          success: false,
-        });
-      }
+      if (checkEmail) throw new Error("Email already exists");
 
-      if (checkEmail) {
-        return res.status(403).send({
-          message: "Email already exists",
-          data: null,
-          success: false,
-        });
+      if (!password) throw new Error("Password is required!");
+      else {
+        password = password.trim();
       }
 
       // Kiểm tra password có đúng định dạng không (ít nhất 1 chữ hoa, 1 chữ thường, 1 số, và ít nhất 8 ký tự)
       const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
-      if (!passwordRegex.test(password)) {
-        return res.status(403).send({
-          message:
-            "Password is invalid. It must contain at least 1 uppercase letter, 1 lowercase letter, 1 digit, and be at least 8 characters long.",
-          data: null,
-          success: false,
-        });
-      } else {
-        if (!checkUserName && !checkEmail) {
-          bcrypt.hash(password, saltRounds, async (err, hashPassword) => {
-            if (err) {
-              return res.status(500).send({
-                message: "Error hashing password",
-                data: null,
-                success: false,
-              });
-            }
+      if (!passwordRegex.test(password))
+        throw new Error(
+          "Password is invalid. It must contain at least 1 uppercase letter, 1 lowercase letter, 1 digit, and be at least 8 characters long."
+        );
 
-            const createdUser = await UsersModel.create({
-              userName,
-              email,
-              password: hashPassword,
+      if (!confirm) throw new Error("Confirm is required!");
+      else {
+        confirm = confirm.trim();
+      }
+      if (confirm == password) {
+        bcrypt.hash(password, saltRounds, async (err, hashPassword) => {
+          if (err) {
+            return res.status(500).send({
+              message: "Error hashing password",
+              data: null,
+              success: false,
             });
+          }
 
-            return res.status(200).send({
-              data: createdUser,
-              message: "Register successful!",
-              success: true,
-            });
+          const createdUser = await UsersModel.create({
+            username,
+            email,
+            password: hashPassword,
           });
-        }
+
+          return res.status(201).send({
+            data: createdUser,
+            message: "Register successful!",
+            success: true,
+          });
+        });
       }
     } catch (error) {
-      return res.status(403).send({
+      return res.status(400).send({
         message: error.message,
         data: null,
         success: false,
@@ -177,10 +225,24 @@ const authenticationController = {
   forgotPassword: async (req, res, next) => {
     try {
       let { email } = req.body;
-      if (!email) throw new Error("email is required!");
+      if (!email) throw new Error("Email is required!");
       else {
         email = email.trim();
       }
+
+      if (!validator.isEmail(email)) throw new Error("Invalid Email");
+
+      const checkEmail = await UsersModel.findOne({ email: email });
+
+      if (!checkEmail) throw new Error("Email has not been used!");
+
+      const checkVerified = await UsersModel.findOne({
+        email: email,
+        isEmailVerified: true,
+      });
+
+      console.log(checkVerified);
+      if (!checkVerified) throw new Error("Email has not been verified!");
 
       const otp = otpGenerator.generate(6, { digits: true });
 
@@ -188,23 +250,32 @@ const authenticationController = {
         otp: otp,
         email: email,
       };
+
       const newOtp = await OtpModel.create(arrOtp);
 
-      if (newOtp) {
-        return res.status(200).send({
-          message: "create otp is successful",
-          data: newOtp,
-          success: true,
-        });
-      } else {
-        return res.status(403).send({
-          message: error.message,
-          data: null,
-          success: false,
-        });
-      }
+      if (!newOtp) throw new Error("Error create Otp.");
+
+      const mailOptions = {
+        from: "info@test.com", // Địa chỉ email gửi
+        to: email, // Email người nhận (người dùng)
+        subject: "Your OTP Code", // Tiêu đề email
+        text: `Your OTP code is: ${otp}`, // Nội dung email
+      };
+
+      await transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          throw new Error("Error sending email");
+        } else {
+          console.log("Email sent: " + info.response);
+          return res.status(200).send({
+            message: "Otp is sent",
+            data: info.response,
+            success: true,
+          });
+        }
+      });
     } catch (error) {
-      return res.status(403).send({
+      return res.status(400).send({
         message: error.message,
         data: null,
         success: false,
@@ -214,72 +285,77 @@ const authenticationController = {
 
   resetPassword: async (req, res) => {
     try {
-      let { otp, password } = req.body;
+      let { otp, password, confirm } = req.body;
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
       const totalMins = 5 * 60 * 1000;
       const dateNow = new Date();
 
-      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+      if (!otp) throw new Error("Otp is required!");
+      else {
+        otp = otp.trim();
+      }
 
-      if (!password) throw new Error("password is required!");
+      if (!password) throw new Error("Password is required!");
       else {
         password = password.trim();
       }
 
-      if (!otp) throw new Error("otp is required!");
+      if (!confirm) throw new Error("Confirm is required!");
       else {
-        otp = otp.trim();
+        confirm = confirm.trim();
       }
+
+      if (!passwordRegex.test(password))
+        throw new Error(
+          "Password is invalid. It must contain at least 1 uppercase letter, 1 lowercase letter, 1 digit, and be at least 8 characters long."
+        );
+
+      if (password != confirm)
+        throw new Error("Confirm and password is not match!");
+
       const checkOtp = await OtpModel.findOne({ otp: otp });
+
+      if (!checkOtp) throw new Error("Otp is incorrect!");
 
       const couterMins = dateNow - checkOtp.createdAt;
 
-      if (!checkOtp) {
-        return res.status(400).send({
-          massage: "otp không đúng",
-          data: null,
-          success: false,
-        });
-      } else {
-        if (couterMins > totalMins) {
-          return res.status(400).send({
-            massage: "otp đã hết hạn",
-            data: null,
-            success: false,
-          });
+      if (couterMins > totalMins) throw new Error("Otp has expired!");
+
+      const hashPassword = bcrypt.hashSync(password, saltRounds);
+
+      const newPassword = await UsersModel.findOneAndUpdate(
+        { email: checkOtp.email },
+        { password: hashPassword },
+        { new: true }
+      );
+
+      const deleteOtp = await OtpModel.findOneAndDelete({ otp: otp });
+
+      const mailOptions = {
+        from: "info@test.com", // Địa chỉ email gửi
+        to: checkOtp.email, // Email người nhận (người dùng)
+        subject: "Your OTP Code", // Tiêu đề email
+        text: `Your password has changed. New password: ${password}`, // Nội dung email
+      };
+
+      await transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          throw new Error("Error sending email");
         } else {
-          if (!passwordRegex.test(password)) {
-            return res.status(403).send({
-              message:
-                "Password is invalid. It must contain at least 1 uppercase letter, 1 lowercase letter, 1 digit, and be at least 8 characters long.",
-              data: null,
-              success: false,
-            });
-          } else {
-            const hashPassword = bcrypt.hashSync(password, saltRounds);
-
-            const newPassword = await UsersModel.findOneAndUpdate(
-              { email: checkOtp.email },
-              { password: hashPassword },
-              { new: true }
-            );
-
-            await OtpModel.findOneAndDelete({ otp: otp });
-
-            if (newPassword) {
-              return res.status(200).send({
-                data: newPassword,
-                message: "reset password successful!",
-                success: true,
-              });
-            } else {
-              return res.status(403).send("reset password failed");
-            }
-          }
+          console.log("Email sent: " + info.response);
         }
+      });
+
+      if (newPassword && deleteOtp) {
+        return res.status(200).send({
+          data: newPassword,
+          message: "Reset password successful!",
+          success: true,
+        });
       }
     } catch (error) {
-      return res.status(403).send({
+      return res.status(400).send({
         message: error.message,
         data: null,
         success: false,

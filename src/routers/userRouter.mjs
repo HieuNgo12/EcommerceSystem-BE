@@ -3,6 +3,7 @@ import authenticationController from "../controllers/authenticationController.mj
 import userController from "../controllers/userController.mjs";
 import multer from "multer";
 import FileController from "../controllers/fileController.mjs";
+import AdminController from "../controllers/adminController.mjs";
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });

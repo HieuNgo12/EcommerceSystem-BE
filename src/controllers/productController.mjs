@@ -60,12 +60,12 @@ const productController = {
 
   addProduct: async (req, res, next) => {
     try {
-      const { title, category, color, image, description, price, slug, sku } =
+      const { title, category, color, description, price, slug, sku } =
         req.body;
       if (!title) throw new Error("title is required");
       if (!category) throw new Error("category is required");
       if (!color) throw new Error("color is required");
-      if (!image) throw new Error("image is required");
+      // if (!image) throw new Error("image is required");
       if (!description) throw new Error("description is required");
       if (!price) throw new Error("price is required");
       if (!slug) throw new Error("slug is required");
@@ -153,17 +153,11 @@ const productController = {
       const productId = req.params.productId;
       const deleteProduct = await ProductModel.findByIdAndDelete(productId);
       if (deleteProduct) {
-        res.status(201).send({
+        res.status(200).send({
           message: "product is deleted successfully!",
           success: true,
         });
-      } else {
-        return res.status(403).send({
-          message: "product is deleted failed",
-          data: null,
-          success: false,
-        });
-      }
+      } 
     } catch (error) {
       return res.status(403).send({
         message: error.message,

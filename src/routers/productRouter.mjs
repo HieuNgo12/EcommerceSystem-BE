@@ -9,22 +9,22 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 const router = express.Router();
 
-router.get("/", productController.getProduct);
+router.get("/", productController.getProduct); // oke 
 
-router.get("/:productId", productController.getProductById);
+router.get("/:productId", productController.getProductById); 
 
 router.get("/category/:categoryId", productController.getCategoryById);
 
-router.post("/add-product", validate.authentication, validate.auhthorizationAdmin, productController.addProduct);
+router.post("/add-product", productController.addProduct); // oke 
 
 router.put("/update-all-product/:productId",validate.authentication, validate.auhthorizationAdmin, productController.updateAllProduct);
 
-router.patch("/update-product/:productId",validate.authentication, validate.auhthorizationAdmin, productController.updateProduct);
+router.patch("/update-product/:productId", productController.updateProduct);
 
-router.delete("/delete-product/:productId",validate.authentication, validate.auhthorizationAdmin, productController.deleteProduct);
+router.delete("/delete-product/:productId", productController.deleteProduct);
 
-router.post("/single-upload", upload.single("file"), FileController.singleUploadForUser);
+router.post("/single-upload", upload.single("file"), FileController.singleUploadForProduct);
 
-router.post("/multi-upload", upload.array("files"), FileController.multiUploadForUser);
+router.post("/multi-upload", upload.array("files"), FileController.multiUploadForProduct);
 
 export default router;

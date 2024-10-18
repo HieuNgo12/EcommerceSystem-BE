@@ -4,8 +4,12 @@ import bcrypt from "bcrypt";
 const AdminController = {
   getUsers: async (req, res, next) => {
     try {
-      const users = await UsersModel.find();
-      return res.status(200).json(users);
+      const users = await UsersModel.find({ role : "user"});
+      res.status(200).json({
+        message: "Get User successfully",
+        data: users,
+        success: true,
+      });
     } catch (error) {
       return res.status(403).send({
         message: error.message,
@@ -67,14 +71,7 @@ const AdminController = {
       if (delUser) {
         res.status(200).json({
           message: "Delete User successfully",
-          data: updatedUser,
           success: true,
-        });
-      } else {
-        res.status(400).json({
-          message: error.message,
-          data: null,
-          success: false,
         });
       }
     } catch (error) {

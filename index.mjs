@@ -8,13 +8,15 @@ import cors from "cors";
 import AuthRouter from "./src/routers/authRouter.mjs";
 import UserRouter from "./src/routers/userRouter.mjs";
 import AdminRouter from "./src/routers/adminRouter.mjs";
+import UploadFile from "./src/utils/UploadFile.mjs";
 import authenticationController from "./src/controllers/authenticationController.mjs";
 import morgan from "morgan";
 import bodyParser from "body-parser";
 import ReviewRouter from "./src/routers/reviewRouter.mjs";
 import  validate  from "./src/utils/validate.mjs";
-import jwt from 'jsonwebtoken';
-import cookieParser from "cookie-parser"; 
+import jwt from "jsonwebtoken";
+import cookieParser from "cookie-parser";
+import { v2 as cloudinary } from "cloudinary";
 
 dotenv.config();
 
@@ -31,7 +33,7 @@ app.use(cookieParser());
 const App = () => {
   app.use(morgan("dev"));
   // app.use("/public", express.static(path.join(__dirname, "public")));
-  app.use(cors());
+
   app.use(express.json());
   app.use(bodyParser.json({ limit: "10mb" }));
   app.use(bodyParser.urlencoded({ extended: false, limit: "10mb" }));
@@ -45,6 +47,37 @@ const App = () => {
   app.use("/api/v1/admin", validate.authentication, validate.auhthorizationAdmin, AdminRouter)
   app.use("/api/v1/products", ProductRouter)
   app.use("/", OrderRouter)
+
+  app.use(
+    "/api/v1/users",
+    validate.authentication,
+    validate.auhthorizationUser,
+    UserRouter
+  );
+
+  app.use(
+    "/api/v1/admin",
+    // validate.authentication,
+    // validate.auhthorizationAdmin,
+    AdminRouter
+  );
+
+  app.use("/api/v1/products", ProductRouter);
+
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+
+  if (process.env.NODE_ENV === "dev") {
+    app.use(
+      cors({
+        origin: "http://localhost:5173", // Miền của frontend
+        credentials: true, // Cho phép cookie được gửi và nhận
+      })
+    );
+  }
 
 // Start server locally if in development mode
 if (process.env.NODE_ENV === "dev") {

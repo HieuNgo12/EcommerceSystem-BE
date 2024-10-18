@@ -9,13 +9,14 @@ const orderController = {
     const limit = req.query.limit;
     const page = req.query.page;
     const query = req.query.query;
+    console.log(limit, page);
     OrderModel.find()
       .populate("paymentId")
       // .populate("userId")
       .populate("deliveryId")
       .populate("productId")
       .limit(limit)
-      .skip(limit * page)
+      .skip(limit * (page - 1))
       .sort({
         name: "asc",
       })
@@ -24,7 +25,6 @@ const orderController = {
       //   // { $group: { _id: '$customerId', totalAmount: { $sum: '$totalAmount' } } }
       // )
       .then((data) => {
-        console.log(data);
         return res.status(200).send({
           status: "OK",
           message: "Get Orders Successfully",

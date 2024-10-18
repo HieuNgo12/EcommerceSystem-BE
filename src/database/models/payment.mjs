@@ -10,6 +10,16 @@ const paymentModel = new mongoose.Schema(
       default: "Pending",
       enum: ["Pending", "Failed", "Successful"],
     },
+    paymentCard: {
+      type: String,
+      required: true,
+      default: "123456789",
+    },
+    paymentDue: {
+      type: Date,
+      required: true,
+      default: () => new Date(+new Date() + 2 * 24 * 60 * 60 * 1000),
+    },
     paymentId: {
       type: String,
       default: "",

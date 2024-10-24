@@ -7,11 +7,16 @@ import jwt from "jsonwebtoken";
 import validator from "validator";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import redis from "redis";
+import cookieParser from "cookie-parser";
+import { jwtDecode } from "jwt-decode";
+
 dotenv.config();
 
 //jwt
 const secretKey = process.env.SECRET_KEY || "mysecretkey";
 const saltRounds = 10;
+// const client = redis.createClient();
 
 // nodemailder
 const transporter = nodemailer.createTransport({
@@ -23,8 +28,12 @@ const transporter = nodemailer.createTransport({
     pass: process.env.PASS_EMAIL,
   },
 });
-let refreshTokens = [];
-console.log(refreshTokens)
+
+//check redis connection
+// client.on("error", (err) => {
+//   console.error("Error connecting to Redis", err);
+// });
+
 const authenticationController = {
   login: async (req, res, next) => {
     try {
@@ -45,46 +54,60 @@ const authenticationController = {
 
       if (!checkEmail) throw new Error("Email is incorrect");
 
-      bcrypt.compare(password, checkEmail.password).then(function (result) {
-        // result == true
-        if (result && checkEmail) {
-          const userData = {
-            id: checkEmail.id,
-            email: checkEmail.email,
-            role: checkEmail.role,
-          };
+      bcrypt
+        .compare(password, checkEmail.password)
+        .then(async function (result) {
+          // result == true
+          if (result && checkEmail) {
+            const userData = {
+              id: checkEmail.id,
+              email: checkEmail.email,
+              isEmailVerified: checkEmail.isEmailVerified,
+              role: checkEmail.role,
+            };
 
-          const accesstoken = jwt.sign(userData, secretKey, {
-            expiresIn: "2m",
-          });
+            const accessToken = jwt.sign(userData, secretKey, {
+              expiresIn: "1m",
+            });
 
-          const refreshToken = jwt.sign(userData, secretKey, {
-            expiresIn: "365d",
-          });
+            const refreshToken = jwt.sign(userData, secretKey, {
+              expiresIn: "365d",
+            });
 
-          refreshTokens.push(refreshToken);
+            // await client.connect();
 
-          res.cookie("refreshToken", refreshToken, {
-            httpOnly: true, // Cookie không thể truy cập qua JavaScript (bảo mật hơn)
-            secure: false, // Sử dụng HTTPS trong production
-            path: "/",
-            sameSite: "None", // Cần thiết nếu frontend và backend ở các domain khác nhau
-            // maxAge: 3600000, // Thời hạn cookie 1 giờ
-          });
+            // client.set(refreshToken, 30 * 24 * 60 * 60, JSON.stringify(userData)); // 30 ngày
 
-          return res.status(200).send({
-            data: accesstoken,
-            message: "Login successful!",
-            success: true,
-          });
-        } else {
-          res.status(400).send({
-            message: "Password is incorrect",
-            data: null,
-            success: false,
-          });
-        }
-      });
+            // res.cookie("refreshToken", refreshToken, {
+            //   httpOnly: true,
+            //   secure: true,
+            //   path: "/",
+            //   sameSite: "None",
+            //   maxAge: 3600000,
+            // });
+
+            // res.cookie("accessToken", accessToken, {
+            //   httpOnly: true,
+            //   secure: true,
+            //   path: "/",
+            //   sameSite: "None",
+            //   maxAge: 60,
+            // });
+
+            return res.status(200).send({
+              accessToken: accessToken,
+              refreshToken: refreshToken,
+              message: "Login successful!",
+              success: true,
+            });
+          } else {
+            res.status(400).send({
+              message: "Password is incorrect",
+              data: null,
+              success: false,
+            });
+          }
+        });
     } catch (error) {
       return res.status(400).send({
         message: error.message,
@@ -94,44 +117,90 @@ const authenticationController = {
     }
   },
 
-  refreshToken: async (req, res, next) => {
-    const refreshToken = req.cookies.refreshToken;
-    if (!refreshToken) throw new Error("You are not authenticated.");
-    if (!refreshTokens.includes(refreshToken))
-      throw new Error("Refresh token is not valid.");
-    jwt.verify(refreshToken, secretKey, (err, user) => {
-      if (err) {
-        console.log(err);
+  // refreshToken: async (req, res, next) => {
+  //   try {
+  //     const refreshToken = req.cookie.refreshToken;
+  //     // console.log(refreshToken);
+
+  //     // return res.status(200).send(refreshToken)
+  //     if (!refreshToken) throw new Error("You are not authenticated.");
+  //     const decoded = jwtDecode(refreshToken);
+  //     console.log(decoded);
+  //     jwt.verify(refreshToken, secretKey, (err, user) => {
+  //       if (err) {
+  //         console.log(err);
+  //       }
+
+  //       const userData = {
+  //         id: user.id,
+  //         email: user.email,
+  //         role: user.role,
+  //       };
+
+  //       const newAccesstoken = jwt.sign(userData, secretKey, {
+  //         expiresIn: "1h",
+  //       });
+
+  //       const newRefreshToken = jwt.sign(userData, secretKey);
+
+  //       res.cookie("refreshToken", newRefreshToken, {
+  //         httpOnly: true, // Cookie không thể truy cập qua JavaScript (bảo mật hơn)
+  //         secure: false, // Sử dụng HTTPS trong production
+  //         path: "/",
+  //         sameSite: "None", // Cần thiết nếu frontend và backend ở các domain khác nhau
+  //         maxAge: 3600000, // Thời hạn cookie 1 giờ
+  //       });
+
+  //       res.status(200).json({ data: newAccesstoken });
+  //     });
+  //   } catch (error) {
+  //     return res.status(400).send({
+  //       message: error.message,
+  //       data: null,
+  //       success: false,
+  //     });
+  //   }
+  // },
+
+  refreshToken: async (req, res) => {
+    try {
+      const token =
+        req.headers["authorization"] &&
+        req.headers["authorization"].split(" ")[1];
+      const decoded = jwtDecode(token);
+
+      const dateNow = new Date();
+
+      //token exprire
+      if (decoded.exp < dateNow.getTime() / 1000) {
+        const newToken = jwt.sign(
+          {
+            id: decoded.id,
+            email: decoded.email,
+            isEmailVerified: decoded.isEmailVerified,
+            role: decoded.role,
+          },
+          process.env.SECRET_KEY,
+          {
+            expiresIn: "1h",
+          }
+        );
+        res.status(200).json({ accessToken: newToken });
+      } else {
+        res.json({ accessToken: token });
       }
-      refreshTokens = refreshTokens.filter((token) => token === refreshToken);
-      const userData = {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-      };
-      const newAccesstoken = jwt.sign(userData, secretKey, {
-        expiresIn: "1h",
+    } catch (error) {
+      return res.status(400).send({
+        message: error.message,
+        data: null,
+        success: false,
       });
-
-      const newRefreshToken = jwt.sign(userData, secretKey);
-
-      refreshTokens.push(newRefreshToken);
-
-      res.cookie("refreshToken", newRefreshToken, {
-        httpOnly: true, // Cookie không thể truy cập qua JavaScript (bảo mật hơn)
-        secure: false, // Sử dụng HTTPS trong production
-        path: "/",
-        sameSite: "None", // Cần thiết nếu frontend và backend ở các domain khác nhau
-        // maxAge: 3600000, // Thời hạn cookie 1 giờ
-      });
-      res.status(200).json({ accesstoken: newAccesstoken });
-    });
+    }
   },
 
   register: async (req, res, next) => {
     try {
       let { username, email, password, confirm } = req.body;
-      console.log(confirm);
       if (!username) throw new Error("Username is required!");
       else {
         username = username.trim();
@@ -349,7 +418,7 @@ const authenticationController = {
 
       if (newPassword && deleteOtp) {
         return res.status(200).send({
-          data: newPassword,
+          data: null,
           message: "Reset password successful!",
           success: true,
         });

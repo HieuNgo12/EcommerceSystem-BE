@@ -13,22 +13,28 @@ router.post("/logout", authenticationController.logout);
 
 router.post("/send-verification-email", userController.sendVerificationEmail);
 
-router.post("/send-verification-phone", userController.sendVerificationPhone);
-
 router.post("/verify-email", userController.verificationEmail);
+
+router.post("/send-verification-phone", userController.sendVerificationPhone);
 
 router.post("/verify-phone", userController.verificationPhone);
 
 router.patch("/change-password", userController.changePassword);
 
-router.put("/update-all-profile", userController.updateAllUser);
+router.post("/send-otp-change-password", userController.sendOtpToChangePassword);
 
-router.patch("/update-profile", userController.updateUser);
+router.put("/update-all-profile",  upload.single("file"), FileController.singleUploadForUser, userController.updateAllUser);
 
-router.get("/profile", userController.profile);
+router.patch("/update-profile", upload.single("file"), FileController.singleUploadForUpdateUser, userController.updateUser);
+
+router.post("/profile", userController.profile);
 
 router.post("/single-upload", upload.single("file"), FileController.singleUploadForUser);
 
+router.post("/update-single-upload", upload.single("file"), FileController.singleUploadForUpdateUser);
+
 router.post("/multi-upload", upload.array("files"), FileController.multiUploadForUser);
+
+
 
 export default router;

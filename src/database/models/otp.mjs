@@ -10,7 +10,7 @@ const OtpSchema = new mongoose.Schema(
     //   type: Date,
     //   default: Date.now,
     //   // TTL: Tự động xóa tài liệu sau 5 phút (5 phút = 300 giây)
-    //   expires: 300, // 5 phút tính bằng giây
+    //   expires: 315, // 5 phút 15 giây tính bằng giây
     // },
   },
   { timestamps: true }

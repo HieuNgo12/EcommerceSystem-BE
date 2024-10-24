@@ -19,7 +19,7 @@ router.post("/add-product", productController.addProduct); // oke
 
 router.put("/update-all-product/:productId",validate.authentication, validate.auhthorizationAdmin, productController.updateAllProduct);
 
-router.patch("/update-product/:productId", productController.updateProduct);
+router.patch("/update-product/:productId", upload.single("file"), FileController.singleUploadForProduct,  productController.updateProduct);
 
 router.delete("/delete-product/:productId", productController.deleteProduct);
 

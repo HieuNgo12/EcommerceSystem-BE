@@ -20,7 +20,23 @@ import { v2 as cloudinary } from "cloudinary";
 dotenv.config();
 // phương thức connect với tham số connect string
 const app = express();
-app.use(cors());
+// app.use(cors());
+
+// app.use(
+//   cors({
+//     origin: "http://localhost:5173", 
+//     credentials: true, 
+//   })
+// );
+
+const corsConfig = {
+  origin: true,
+  credentials: true,
+};
+
+app.use(cors(corsConfig));
+app.options('*', cors(corsConfig));
+
 app.use(express.json());
 app.use(cookieParser());
 const App = () => {
@@ -44,27 +60,18 @@ const App = () => {
 
   app.use(
     "/api/v1/admin",
-    // validate.authentication,
-    // validate.auhthorizationAdmin,
+    validate.authentication,
+    validate.auhthorizationAdmin,
     AdminRouter
   );
 
   app.use("/api/v1/products", ProductRouter);
-
+  
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
   });
-
-  if (process.env.NODE_ENV === "dev") {
-    app.use(
-      cors({
-        origin: "http://localhost:5173", // Miền của frontend
-        credentials: true, // Cho phép cookie được gửi và nhận
-      })
-    );
-  }
 
   if (process.env.NODE_ENV === "dev") {
     app.listen(8080, () => {

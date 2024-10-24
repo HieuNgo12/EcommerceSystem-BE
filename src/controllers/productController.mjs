@@ -1,4 +1,5 @@
 import ProductModel from "../database/models/product.mjs";
+import { v2 as cloudinary } from "cloudinary";
 
 const productController = {
   getProduct: async (req, res, next) => {
@@ -72,7 +73,7 @@ const productController = {
       if (!sku) throw new Error("sku is required");
 
       const product = await ProductModel.create(req.body);
-      res.status(201).send({
+      res.status(200).send({
         data: product,
         message: "add prodcut successfully!",
         success: true,
@@ -151,10 +152,27 @@ const productController = {
   deleteProduct: async (req, res, next) => {
     try {
       const productId = req.params.productId;
+
+      await cloudinary.uploader.destroy(
+        `products/${productId}`,
+        {
+          resource_type: "image",
+          folder: "products",
+          // có thể thêm field folder nếu như muốn tổ chức
+        },
+        (error, result) => {
+          if (error) {
+            console.error("Error:", error);
+          } else {
+            console.log("Result:", result);
+          }
+        }
+      );
+
       const deleteProduct = await ProductModel.findByIdAndDelete(productId);
       if (deleteProduct) {
         res.status(200).send({
-          message: "product is deleted successfully!",
+          message: "Product is deleted successfully!",
           success: true,
         });
       } 

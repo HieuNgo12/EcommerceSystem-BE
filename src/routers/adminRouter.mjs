@@ -10,19 +10,20 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 const router = express.Router();
 
-router.post("/logout", authenticationController.logout);
+router.post("/logout", authenticationController.logout); 
 
-router.post("/get-users", AdminController.getUsers);
+router.post("/signup",  upload.single("file"), AdminController.registerByAdmin); //ok
 
-router.put("/update-all-profile/:userId", upload.single("file"), FileController.singleUploadForUpdateUser, AdminController.updateAllUser);
+router.post("/get-users", AdminController.getUsers); //ok
 
-router.patch("/update-profile/:userId", AdminController.updateUser);
+router.put("/update-all-profile/:userId", AdminController.updateAllUser); 
 
-router.delete("/user-delete/:userId", AdminController.deleteUser);
+router.patch("/update-profile/:userId", upload.single("file"), FileController.singleUpdateForUserByAdmin, AdminController.updateUser); //ok
+
+router.delete("/user-delete/:userId", AdminController.deleteUser); //ok
 
 router.post("/single-upload", upload.single("file"), FileController.singleUploadForUser);
 
 router.post("/multi-upload", upload.array("files"), FileController.multiUploadForUser);
-
 
 export default router;

@@ -497,7 +497,7 @@ const userController = {
             digits: true,
             alphabets: false,
             upperCase: false,
-            specialChars: false
+            specialChars: false,
           });
 
           const arrOtp = {

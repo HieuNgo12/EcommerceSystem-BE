@@ -10,6 +10,7 @@ import dotenv from "dotenv";
 import redis from "redis";
 import cookieParser from "cookie-parser";
 import { jwtDecode } from "jwt-decode";
+import { v2 as cloudinary } from "cloudinary";
 
 dotenv.config();
 
@@ -168,7 +169,6 @@ const authenticationController = {
         req.headers["authorization"] &&
         req.headers["authorization"].split(" ")[1];
       const decoded = jwtDecode(token);
-
       const dateNow = new Date();
 
       //token exprire

@@ -31,22 +31,23 @@ const authMiddleware = {
         if (token) {
           jwt.verify(token, secretKey, (err, decoded) => {
             if (err) {
-              console.error("JWT verification failed:", err.message);
-              return res.status(403).send("Invalid or expired token hehehe");
+              return res.status(403).send({ message: "Invalid or expired token" });
             } else {
               req.user = decoded;
               next();
             }
           });
         } else {
-          res.status(403).send("Unauthorized");
+          res.status(401).send({ message: "Unauthorized, token is missing" });
         }
       } else {
-        res.status(403).send("Unauthorized");
+        res
+          .status(401)
+          .send({ message: "Unauthorized, no authorization header" });
       }
     } catch (err) {
       console.error("JWT verification failed:", err.message);
-      return res.status(403).send("Invalid or expired token");
+      return res.status(500).send({ message: "Internal Server Error" });
     }
   },
 

@@ -20,15 +20,15 @@ const userSchema = new mongoose.Schema(
     isEmailVerified: { type: Boolean, default: false },
     isIdCardVerified: { type: Boolean, default: false },
     zipcode: { type: String, default: null },
-    avatar: { type: String, default: "https://rgb.vn/wp-content/uploads/2024/05/RGB-DOGECOIN-KABOSU-MEMECOIN-3-1024x614.webp" },
+    avatar: { type: String, default: "https://res.cloudinary.com/dsxlqhn53/image/upload/v1729910693/users/default.jpg" },
     rank: {
       type: String,
       enum: ["diamond", "gold", "silver", "normal"],
       default: "normal",
     },
+    cardNumber: { type: String, default: "" },
+    idCard: { type: String, default: "" },
     loyaltyPoints: { type: Number, default: 0 },
-    cardNumber: { type: Number, default: null },
-    idCard: { type: Number, default: null },
     totalSpent: { type: Number, default: 0 },
     status: {
       type: String,
@@ -47,7 +47,6 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// định nghĩa model cần truyền với phương thức model và các tham số lần lượt: tên collections, schema của document
 const UsersModel = mongoose.model("user", userSchema);
-// UsersModel.insertMany(products);
+
 export default UsersModel;

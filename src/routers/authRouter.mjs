@@ -5,14 +5,14 @@ import userController from "../controllers/userController.mjs";
 
 const router = express.Router();
 
-router.post("/signup", authenticationController.register);
+router.post("/signup", authenticationController.register); //ok
 
-router.post("/login", authenticationController.login);
+router.post("/login", authenticationController.login); //ok
 
-router.post("/forgot-password", authenticationController.forgotPassword);
+router.post("/forgot-password", authenticationController.forgotPassword); //ok
 
-router.post("/reset-password", authenticationController.resetPassword);
+router.post("/reset-password", authenticationController.resetPassword); //ok
 
-router.post("/refresh-token", authenticationController.refreshToken);
+router.post("/refresh-token", authenticationController.refreshToken); //ok
 
 export default router;

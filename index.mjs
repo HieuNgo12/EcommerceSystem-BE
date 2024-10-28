@@ -8,6 +8,7 @@ import cors from "cors"; // Import CORS
 import AuthRouter from "./src/routers/authRouter.mjs";
 import UserRouter from "./src/routers/userRouter.mjs";
 import AdminRouter from "./src/routers/adminRouter.mjs";
+import PromotionRouter from "./src/routers/promotionRouter.mjs";
 import UploadFile from "./src/utils/UploadFile.mjs";
 import authenticationController from "./src/controllers/authenticationController.mjs";
 import morgan from "morgan";
@@ -24,8 +25,8 @@ const app = express();
 
 // app.use(
 //   cors({
-//     origin: "http://localhost:5173", 
-//     credentials: true, 
+//     origin: "http://localhost:5173",
+//     credentials: true,
 //   })
 // );
 
@@ -35,7 +36,7 @@ const corsConfig = {
 };
 
 app.use(cors(corsConfig));
-app.options('*', cors(corsConfig));
+app.options("*", cors(corsConfig));
 
 app.use(express.json());
 app.use(cookieParser());
@@ -65,8 +66,15 @@ const App = () => {
     AdminRouter
   );
 
+  app.use(
+    "/api/v1/promotion",
+    validate.authentication,
+    validate.auhthorizationAdmin,
+    PromotionRouter
+  );
+
   app.use("/api/v1/products", ProductRouter);
-  
+
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,

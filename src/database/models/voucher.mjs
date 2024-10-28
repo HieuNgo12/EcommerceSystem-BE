@@ -12,6 +12,10 @@ const voucherSchema = new Schema(
       type: String,
       default: "",
     },
+    user: {
+      phone: { type: String, required: true },
+      useDate: { type: Date, default: Date.now },
+    },
     discountType: {
       type: String,
       enum: ["percentage", "fixed"], // Phần trăm hoặc số tiền cố định

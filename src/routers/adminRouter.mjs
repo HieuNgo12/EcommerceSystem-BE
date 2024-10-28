@@ -26,4 +26,6 @@ router.post("/single-upload", upload.single("file"), FileController.singleUpload
 
 router.post("/multi-upload", upload.array("files"), FileController.multiUploadForUser);
 
+router.post("/create-voucher", )
+
 export default router;

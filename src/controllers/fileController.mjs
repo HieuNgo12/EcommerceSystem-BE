@@ -196,6 +196,45 @@ const FileController = {
     );
   },
 
+  singleUpdateForPromotion: (req, res, next) => {
+    const file = req.file;
+    const promotionId = req.params.promotionId;
+    if (!promotionId) throw new Error("Please log in frist!");
+
+    if (!file) {
+      return next();
+    }
+
+    const dataUrl = `data:${file.mimetype};base64,${file.buffer.toString(
+      "base64"
+    )}`;
+    // const fileName = file.originalname.split(".")[0];
+
+    cloudinary.uploader.upload(
+      dataUrl,
+      {
+        public_id: promotionId,
+        resource_type: "auto",
+        folder: "promotion",
+        overwrite: true,
+        // có thể thêm field folder nếu như muốn tổ chức
+      },
+      (err, result) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ error: "File upload failed.", details: err });
+        }
+
+        if (result) {
+          req.secure_url = result.secure_url;
+          req.public_id = result.public_id;
+          next();
+        }
+      }
+    );
+  },
+
   singleUpdateForUserByAdmin: (req, res, next) => {
     const file = req.file;
     const userId = req.body.userId;

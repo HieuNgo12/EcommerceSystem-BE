@@ -62,6 +62,7 @@ const authenticationController = {
           if (result && checkEmail) {
             const userData = {
               id: checkEmail.id,
+              username : checkEmail.username,
               email: checkEmail.email,
               isEmailVerified: checkEmail.isEmailVerified,
               role: checkEmail.role,
@@ -277,7 +278,7 @@ const authenticationController = {
 
   logout: async (req, res, next) => {
     try {
-      res.clearCookie("auth_token");
+      res.clearCookie("token");
       return res.status(200).send({
         message: "Logout successful",
         success: true,

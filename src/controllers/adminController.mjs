@@ -305,5 +305,17 @@ const AdminController = {
       });
     }
   },
+
+  createVoucher: async (req, res, next) => {
+    try {
+      
+    } catch (error) {
+      return res.status(403).send({
+        message: error.message,
+        data: null,
+        success: false,
+      });
+    }
+  },
 };
 export default AdminController;

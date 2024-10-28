@@ -33,6 +33,4 @@ router.post("/single-upload", upload.single("file"), FileController.singleUpload
 
 router.post("/multi-upload", upload.array("files"), FileController.multiUploadForUser);
 
-
-
 export default router;

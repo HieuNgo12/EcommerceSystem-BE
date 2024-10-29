@@ -2,6 +2,7 @@ import UsersModel from "../database/models/users.mjs";
 import bcrypt from "bcrypt";
 import { v2 as cloudinary } from "cloudinary";
 import PromotionModel from "../database/models/promotion.mjs";
+import mongoose from "mongoose";
 
 const secretKey = process.env.SECRET_KEY || "mysecretkey";
 const saltRounds = 10;
@@ -9,7 +10,21 @@ const saltRounds = 10;
 const PromotionController = {
   getPromotion: async (req, res, next) => {
     try {
-      const promotion = await PromotionModel.find();
+      const promotion = await PromotionModel.find().populate(
+        "applicableProducts",
+        "title"
+      );
+
+      const currentDate = new Date();
+      const newArr = promotion.map(async (item) => {
+        const plainItem = item.toObject();
+        if (new Date(plainItem.endDate) > currentDate) {
+          await PromotionModel.findByIdAndUpdate(item._id, {
+            status: "expired",
+          });
+        }
+      });
+
       if (promotion) {
         return res.status(200).json({
           data: promotion,
@@ -138,48 +153,102 @@ const PromotionController = {
     try {
       const promotionId = req.params.promotionId;
       const secure_url = req.secure_url;
+      let dataApplicableProducts = req.body.applicableProducts;
+      console.log(dataApplicableProducts)
+      if (!dataApplicableProducts) {
+        if (secure_url) {
+          const dataPromotion = await PromotionModel.findOneAndUpdate(
+            { _id: promotionId },
+            { ...req.body, image: secure_url },
+            { new: true }
+          );
 
-      if (secure_url) {
-        const dataPromotion = await PromotionModel.findOneAndUpdate(
-          { _id: promotionId },
-          { ...req.body, image: secure_url },
-          { new: true }
-        );
-
-        if (!dataPromotion) {
-          return res.status(400).json({
-            data: null,
-            message: "Update is failded",
-            success: false,
-          });
+          if (!dataPromotion) {
+            return res.status(400).json({
+              data: null,
+              message: "Update is failed",
+              success: false,
+            });
+          } else {
+            return res.status(200).json({
+              data: null,
+              message: "Update is successful",
+              success: false,
+            });
+          }
         } else {
-          return res.status(200).json({
-            data: null,
-            message: "Update is successful",
-            success: false,
-          });
+          const dataPromotion = await PromotionModel.findByIdAndUpdate(
+            promotionId,
+            req.body,
+            {
+              new: true,
+            }
+          );
+
+          if (!dataPromotion) {
+            return res.status(400).json({
+              data: null,
+              message: "Update is failded",
+              success: false,
+            });
+          } else {
+            return res.status(200).json({
+              data: null,
+              message: "Update is successful",
+              success: false,
+            });
+          }
         }
       } else {
-        const dataPromotion = await PromotionModel.findByIdAndUpdate(
-          promotionId,
-          req.body,
-          {
-            new: true,
-          }
-        );
+        if (typeof dataApplicableProducts === "string") {
+          dataApplicableProducts = dataApplicableProducts.split(",");
+        }
 
-        if (!dataPromotion) {
-          return res.status(400).json({
-            data: null,
-            message: "Update is failded",
-            success: false,
-          });
+        const productIds = dataApplicableProducts.map((id) =>
+          mongoose.Types.ObjectId(id.trim())
+        );
+        if (secure_url) {
+          const dataPromotion = await PromotionModel.findOneAndUpdate(
+            { _id: promotionId },
+            { ...req.body, applicableProducts: productIds, image: secure_url },
+            { new: true }
+          );
+
+          if (!dataPromotion) {
+            return res.status(400).json({
+              data: null,
+              message: "Update is failded",
+              success: false,
+            });
+          } else {
+            return res.status(200).json({
+              data: null,
+              message: "Update is successful",
+              success: false,
+            });
+          }
         } else {
-          return res.status(200).json({
-            data: null,
-            message: "Update is successful",
-            success: false,
-          });
+          const dataPromotion = await PromotionModel.findByIdAndUpdate(
+            promotionId,
+            { ...req.body, applicableProducts: productIds },
+            {
+              new: true,
+            }
+          );
+
+          if (!dataPromotion) {
+            return res.status(400).json({
+              data: null,
+              message: "Update is failded",
+              success: false,
+            });
+          } else {
+            return res.status(200).json({
+              data: null,
+              message: "Update is successful",
+              success: false,
+            });
+          }
         }
       }
     } catch (error) {

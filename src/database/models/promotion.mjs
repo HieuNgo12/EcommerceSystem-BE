@@ -46,7 +46,7 @@ const promotionSchema = new mongoose.Schema(
     applicableProducts: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Product", // Sản phẩm áp dụng chương trình khuyến mãi
+        ref: "products", // Sản phẩm áp dụng chương trình khuyến mãi
       },
     ],
     applicableCategories: [

@@ -8,6 +8,7 @@ import cors from "cors";
 import AuthRouter from "./src/routers/authRouter.mjs";
 import UserRouter from "./src/routers/userRouter.mjs";
 import AdminRouter from "./src/routers/adminRouter.mjs";
+import PromotionRouter from "./src/routers/promotionRouter.mjs";
 import authenticationController from "./src/controllers/authenticationController.mjs";
 import morgan from "morgan";
 import bodyParser from "body-parser";
@@ -22,7 +23,23 @@ import nodemailer from "nodemailer"
 dotenv.config();
 
 const app = express();
-app.use(cors());
+// app.use(cors());
+
+// app.use(
+//   cors({
+//     origin: "http://localhost:5173",
+//     credentials: true,
+//   })
+// );
+
+const corsConfig = {
+  origin: true,
+  credentials: true,
+};
+
+app.use(cors(corsConfig));
+app.options("*", cors(corsConfig));
+
 app.use(express.json());
 app.use(morgan("dev"));
 app.use(bodyParser.json({ limit: "10mb" }));
@@ -68,9 +85,16 @@ const App = async () => {
 
   app.use(
     "/api/v1/admin",
-    // validate.authentication,
-    // validate.auhthorizationAdmin,
+    validate.authentication,
+    validate.auhthorizationAdmin,
     AdminRouter
+  );
+
+  app.use(
+    "/api/v1/promotion",
+    validate.authentication,
+    validate.auhthorizationAdmin,
+    PromotionRouter
   );
 
   app.use("/api/v1/products", ProductRouter);

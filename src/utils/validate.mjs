@@ -25,51 +25,55 @@ const authMiddleware = {
 
   authentication: async (req, res, next) => {
     try {
-      // const token = req.cookies["auth_token"]; // Lấy token từ cookie
       const authorization = req.headers["authorization"]?.split(" ");
       if (Array.isArray(authorization)) {
         const token = authorization[1];
-        console.log(token);
         if (token) {
           jwt.verify(token, secretKey, (err, decoded) => {
             if (err) {
-              console.error("JWT verification failed:", err.message);
+              return res.status(403).send({ message: "Invalid or expired token" });
             } else {
               req.user = decoded;
-              console.log(decoded);
               next();
             }
           });
         } else {
-          res.status(403).send("Unauthorized");
+          res.status(401).send({ message: "Unauthorized, token is missing" });
         }
       } else {
-        res.status(403).send("Unauthorized");
+        res
+          .status(401)
+          .send({ message: "Unauthorized, no authorization header" });
       }
     } catch (err) {
       console.error("JWT verification failed:", err.message);
-      return res.status(403).send("Invalid or expired token");
+      return res.status(500).send({ message: "Internal Server Error" });
     }
   },
 
-  refreshToken: async (req, res, next) => {
-    const token =
-      req.headers["authorization"] &&
-      req.headers["authorization"].split(" ")[1];
-    const decoded = jwtDecode(token);
+  // refreshToken: async (req, res) => {
+  //   const token =
+  //     req.headers["authorization"] &&
+  //     req.headers["authorization"].split(" ")[1];
+  //   console.log(token);
+  //   const decoded = jwtDecode(token);
 
-    const dateNow = new Date();
+  //   const dateNow = new Date();
 
-    //token exprire
-    if (decoded.exp < dateNow.getTime() / 1000) {
-      const token = jwt.sign({ id: decoded.id, claim: decoded.claim }, key, {
-        expiresIn: "1h",
-      });
-      res.json({ accsseccessToken: token });
-    } else {
-      res.json({ token: token });
-    }
-  },
+  //   //token exprire
+  //   if (decoded.exp < dateNow.getTime() / 1000) {
+  //     const token = jwt.sign(
+  //       { id: decoded.id, claim: decoded.claim },
+  //       process.env.SECRET_KEY,
+  //       {
+  //         expiresIn: "1h",
+  //       }
+  //     );
+  //     res.json({ accesstoken: token });
+  //   } else {
+  //     res.json({ token: token });
+  //   }
+  // },
 };
 
 export default authMiddleware;

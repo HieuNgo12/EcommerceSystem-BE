@@ -9,23 +9,25 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 const router = express.Router();
 
-router.post("/logout", authenticationController.logout);
+router.post("/logout", authenticationController.logout); 
 
-router.post("/send-verification-email", userController.sendVerificationEmail);
+router.post("/send-verification-email", userController.sendVerificationEmail); //ok
+ 
+router.post("/verify-email", userController.verificationEmail); //ok
 
-router.post("/send-verification-phone", userController.sendVerificationPhone);
+router.post("/send-verification-phone", userController.sendVerificationPhone); //ok
 
-router.post("/verify-email", userController.verificationEmail);
+router.post("/verify-phone", userController.verificationPhone); //ok
 
-router.post("/verify-phone", userController.verificationPhone);
+router.patch("/change-password", userController.changePassword); //ok
 
-router.patch("/change-password", userController.changePassword);
+router.post("/send-otp-change-password", userController.sendOtpToChangePassword); //ok
 
-router.put("/update-all-profile", userController.updateAllUser);
+router.put("/update-all-profile", userController.updateAllUser); 
 
-router.patch("/update-profile", userController.updateUser);
+router.patch("/update-profile", upload.single("file"), FileController.singleUpdateForUser, userController.updateUser); //ok
 
-router.get("/profile", userController.profile);
+router.post("/profile", userController.profile); //ok
 
 router.post(
   "/single-upload",

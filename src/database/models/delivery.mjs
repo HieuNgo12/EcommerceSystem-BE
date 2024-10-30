@@ -32,10 +32,13 @@ const deliveryModel = new mongoose.Schema(
 
       default: () => new Date(+new Date() + 2 * 24 * 60 * 60 * 1000),
     },
+    cancelDate: {
+      type: Date,
+    },
     deliveryStatus: {
       type: String,
-      default: "Checking"
-    }
+      default: "Checking",
+    },
   },
   { autoCreate: true, autoIndex: true, timestamps: true }
 );

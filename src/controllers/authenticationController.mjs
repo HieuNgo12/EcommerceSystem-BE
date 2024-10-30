@@ -25,7 +25,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 let refreshTokens = [];
-console.log(refreshTokens)
+console.log(refreshTokens);
 const authenticationController = {
   login: async (req, res, next) => {
     try {
@@ -36,9 +36,9 @@ const authenticationController = {
         email = email.trim();
       }
       if (!password) throw new Error("password is required!");
-      else {
-        password = password.trim();
-      }
+      // else {
+      //   password = password.trim();
+      // }
 
       const checkEmail = await UsersModel.findOne({
         email: email,
@@ -56,7 +56,8 @@ const authenticationController = {
           };
 
           const accesstoken = jwt.sign(userData, secretKey, {
-            expiresIn: "2m",
+            // expiresIn: "2m",
+            expiresIn: "365d",
           });
 
           const refreshToken = jwt.sign(userData, secretKey, {
@@ -159,9 +160,9 @@ const authenticationController = {
       if (checkEmail) throw new Error("Email already exists");
 
       if (!password) throw new Error("Password is required!");
-      else {
-        password = password.trim();
-      }
+      // else {
+      //   password = password.trim();
+      // }
 
       // Kiểm tra password có đúng định dạng không (ít nhất 1 chữ hoa, 1 chữ thường, 1 số, và ít nhất 8 ký tự)
       const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
@@ -298,9 +299,9 @@ const authenticationController = {
       }
 
       if (!password) throw new Error("Password is required!");
-      else {
-        password = password.trim();
-      }
+      // else {
+      //   password = password.trim();
+      // }
 
       if (!confirm) throw new Error("Confirm is required!");
       else {
@@ -362,6 +363,29 @@ const authenticationController = {
         success: false,
       });
     }
+  },
+  getUserByToken: async (req, res, next) => {
+    const token = req.body.token;
+    console.log(req.body);
+    jwt.verify(token, secretKey, async (err, user) => {
+      try {
+        const findUser = await UsersModel.findOne({
+          email: user.email,
+        });
+        console.log(findUser);
+        res.status(200).json({
+          data: findUser,
+          message: "success",
+        });
+      } catch (e) {
+        res.status(401).send({
+          message: err,
+        });
+      }
+      if (err) {
+        console.log(err);
+      }
+    });
   },
 };
 export default authenticationController;

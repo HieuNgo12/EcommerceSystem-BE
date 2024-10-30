@@ -12,12 +12,10 @@ const paymentModel = new mongoose.Schema(
     },
     paymentCard: {
       type: String,
-      required: true,
-      default: "123456789",
+      default: null,
     },
     paymentDue: {
       type: Date,
-      required: true,
       default: () => new Date(+new Date() + 2 * 24 * 60 * 60 * 1000),
     },
     paymentId: {

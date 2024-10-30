@@ -57,7 +57,7 @@ const orderModel = new mongoose.Schema(
       enum: ["Cash", "Credit"],
     },
     amount: {
-      type: String,
+      type: Number,
     },
     cardNumber: {
       type: String,

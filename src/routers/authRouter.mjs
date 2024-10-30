@@ -13,5 +13,6 @@ router.post("/forgot-password", authenticationController.forgotPassword);
 router.post("/reset-password", authenticationController.resetPassword);
 
 router.post("/refresh-token", authenticationController.refreshToken);
+router.post("/getUserByToken", authenticationController.getUserByToken);
 
 export default router;

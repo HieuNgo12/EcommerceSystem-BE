@@ -66,6 +66,8 @@ const orderController = {
 
           const payment = await PaymentModel.create({
             userId: decoded._id,
+            paymentMethod: req.body.body.paymentMethod,
+            paymentCard: req.body.body.paymentCard,
           });
           const ref = {
             userId: decoded._id,
@@ -84,13 +86,6 @@ const orderController = {
             message: "Added Order Successfully",
             data: order,
           });
-          // } else {
-          //   res.status(401).send({
-          //     status: "Not Ok",
-          //     message: "Unable to add Order due to limitted products",
-          //     data: order,
-          //   });
-          // }
         }
       });
     } catch (err) {
@@ -131,6 +126,47 @@ const orderController = {
       return res.status(400).send({
         status: "ERR_SERVER",
         message: err.message,
+        content: err,
+      });
+    }
+  },
+  cancelOrder: async (req, res) => {
+    try {
+      const orderId = req.body.orderId;
+      console.log(orderId);
+      const resOrder = await OrderModel.findOne({ _id: orderId })
+        .populate("paymentId")
+        .populate("deliveryId")
+        .populate("productId");
+      console.log(resOrder);
+      const resDelivery = await DeliveryModel.findOneAndUpdate(
+        {
+          _id: resOrder?.deliveryId?._id,
+        },
+        {
+          deliveryStatus: "Cancelled",
+          cancelDate: new Date.now(),
+        }
+      );
+      const resPayment = await PaymentModel.findOneAndUpdate(
+        {
+          _id: resOrder?.paymentId?._id,
+        },
+        {
+          status: "Failed",
+        }
+      );
+      const user = UsersModel.findById(resOrder.userId);
+      return res.status(200).send({
+        status: "OK",
+        message: "Updated Order Successfully",
+        content: resOrder,
+      });
+    } catch (err) {
+      return res.status(400).send({
+        status: "ERR_SERVER",
+        message: err.message,
+        data: { resOrder, resDelivery, resPayment },
         content: err,
       });
     }

@@ -3,10 +3,10 @@ import { v2 as cloudinary } from "cloudinary";
 const FileController = {
   singleUploadForProduct: (req, res, next) => {
     const file = req.file;
-    const productId = req.body.productId; 
+    const productId = req.body.productId;
 
-    console.log(file)
-    console.log(productId)
+    console.log(file);
+    console.log(productId);
     if (!file) {
       return res.status(400).json({ error: "Không có tệp được tải lên." });
     }
@@ -46,7 +46,7 @@ const FileController = {
               mimetype: file.mimetype,
               size: file.size,
             },
-            version : result.version
+            version: result.version,
           });
         }
       }
@@ -71,7 +71,7 @@ const FileController = {
         public_id: fileName,
         resource_type: "auto",
         folder: "users",
-        overwrite: true
+        overwrite: true,
         // có thể thêm field folder nếu như muốn tổ chức
       },
       (err, result) => {
@@ -123,7 +123,7 @@ const FileController = {
           {
             public_id: fileName,
             resource_type: "auto",
-            overwrite: true
+            overwrite: true,
             // có thể thêm field folder nếu như muốn tổ chức
           },
           (err, result) => {
@@ -143,7 +143,7 @@ const FileController = {
       });
     }
   },
-  
+
   multiUploadForUser: (req, res, next) => {
     console.log(req.files);
     const listFile = req.files;
@@ -166,7 +166,7 @@ const FileController = {
           {
             public_id: fileName,
             resource_type: "auto",
-            overwrite: true
+            overwrite: true,
             // có thể thêm field folder nếu như muốn tổ chức
           },
           (err, result) => {
@@ -184,6 +184,23 @@ const FileController = {
         error: "Đã xảy ra lỗi khi tải lên tệp.",
         details: err.message,
       });
+    }
+  },
+  uploadImageForOrder: (req, res, next) => {
+    try {
+      const file = req.file;
+      console.log(req);
+      const dataUrl = `data:${file.mimetype};base64,${file.buffer.toString(
+        "base64"
+      )}`;
+
+      cloudinary.uploader.upload(dataUrl, (error, result) => {
+        if (error) return res.send(error);
+
+        return res.send(result);
+      });
+    } catch (e) {
+      console.log(e);
     }
   },
 };

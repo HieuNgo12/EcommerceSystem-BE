@@ -5,15 +5,16 @@ const reviewSchema = new mongoose.Schema(
     productId: {
       type: String,
       ref: "products",
-      required: true,
     },
     userId: {
       type: String,
-      ref: "users",
-      required: true,
+      ref: "user",
     },
     rating: { type: Number, required: true, min: 1, max: 5 },
     comment: { type: String },
+    image: {
+      type: String,
+    },
   },
   {
     timestamps: true,

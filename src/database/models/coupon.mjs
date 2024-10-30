@@ -8,43 +8,28 @@ const couponModel = new mongoose.Schema(
       min: 5,
       max: 15,
       trim: true,
+      unique: true,
     },
-    couponId: {
-      type: mongoose.Schema.Types.ObjectId,
-    },
-    productId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "product",
+    orderId: {
+      type: String,
+      ref: "orders",
     },
     discount: {
-      type: String,
-    },
-    discountStatus: {
-      type: Boolean,
-    },
-
-    originalPrice: {
       type: Number,
+      default: 35,
     },
-    finalPrice: {
-      type: Number,
-    },
-    createdAt: {
+    status: {
       type: String,
-      default:
-        moment().format("DD/MM/YYYY") + ";" + moment().format("hh:mm:ss"),
-    },
-    updatedAt: {
-      type: String,
-      default:
-        moment().format("DD/MM/YYYY") + ";" + moment().format("hh:mm:ss"),
+      enum: ["Used", "Available"],
+      default: "Available",
     },
     expirationTime: {
-      type: String,
+      type: Date,
+      default: () => new Date(+new Date() + 182 * 24 * 60 * 60 * 1000),
       required: true,
     },
   },
-  { autoCreate: true, autoIndex: true }
+  { autoCreate: true, autoIndex: true, timestamps: true }
 );
 
 const CouponModel = mongoose.model("coupon", couponModel);

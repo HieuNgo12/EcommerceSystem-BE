@@ -1,5 +1,7 @@
 import ReviewModel from "../database/models/review.mjs";
 import ProductModel from "../database/models/product.mjs";
+import UsersModel from "../database/models/users.mjs";
+import { v2 as cloudinary } from "cloudinary";
 
 const reviewController = {
   // Get all reviews for a product
@@ -18,28 +20,42 @@ const reviewController = {
         .send({ message: "Failed to retrieve reviews.", success: false });
     }
   },
+  getReviews: async (req, res) => {
+    const { userEmail, productId } = req.body;
+    console.log(userEmail, productId);
+    try {
+      const reviews = await ReviewModel.find({ productId: productId });
+      // .then((err, review) => {
+      //   console.log(review);
+      //   review = review.filter((review) => {
+      //     return review.email === userEmail;
+      //   });
 
+      // });
+      console.log(reviews);
+      res.status(200).send({
+        data: reviews,
+        message: "Reviews retrieved successfully!",
+        success: true,
+      });
+    } catch (error) {
+      console.log(error.message);
+      res.status(400).send({ message: error.message, success: false });
+    }
+  },
   // Add a new review (all)
   addReview: async (req, res) => {
     try {
-      const { productId } = req.params;
-      const review = new ReviewModel({
-        ...req.body,
-        userId: req.user.id,
-        productId,
+      const body = req.body;
+      const review = await ReviewModel.create(body);
+      console.log(review);
+      res.status(201).send({
+        data: review,
+        message: "Review added successfully!",
+        success: true,
       });
-      await review.save();
-      res
-        .status(201)
-        .send({
-          data: review,
-          message: "Review added successfully!",
-          success: true,
-        });
     } catch (error) {
-      res
-        .status(400)
-        .send({ message: "Failed to add review.", success: false });
+      res.status(400).send({ message: error.message, success: false });
     }
   },
 
@@ -59,13 +75,11 @@ const reviewController = {
       ) {
         review.set(req.body);
         await review.save();
-        res
-          .status(200)
-          .send({
-            data: review,
-            message: "Review updated successfully!",
-            success: true,
-          });
+        res.status(200).send({
+          data: review,
+          message: "Review updated successfully!",
+          success: true,
+        });
       } else {
         res.status(403).send({ message: "Permission denied.", success: false });
       }
@@ -102,6 +116,18 @@ const reviewController = {
         .status(400)
         .send({ message: "Failed to delete review.", success: false });
     }
+  },
+  uploadSingleFile: async (req, res) => {
+    const file = req.file;
+    const dataUrl = `data:${file.mimetype};base64,${file.buffer.toString(
+      "base64"
+    )}`;
+
+    cloudinary.uploader.upload(dataUrl, (error, result) => {
+      if (error) return res.send(error);
+
+      return res.send(result);
+    });
   },
 };
 

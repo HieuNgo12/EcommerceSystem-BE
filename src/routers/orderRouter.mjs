@@ -1,7 +1,12 @@
 import authenticationController from "../controllers/authenticationController.mjs";
+import couponController from "../controllers/couponController.mjs";
+import FileController from "../controllers/fileController.mjs";
 import orderController from "../controllers/orderController.mjs";
 import express from "express";
+import multer from "multer";
 
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 // router.get("/order", authenticationController.isUser, orderController.getOrder);
 // router.post("/order", authenticationController.isAdmin, orderController.createOrder);
 // router.put("/order", authenticationController.isAdmin,orderController.updateOrder);
@@ -9,7 +14,7 @@ const router = express.Router();
 
 router.get(
   "/api/v1/order",
-  // authenticationController.isLogin,
+  authenticationController.isLogin,
   orderController.getOrder
 );
 router.post(
@@ -27,15 +32,12 @@ router.post(
   // authenticationController.isAdmin,
   orderController.token
 );
-// router.post("/api/v1/upload", upload.single("file"), (req, res) => {
-//   // Truy cập dữ liệu tệp từ req.file
-//   const file = req.file;
 
-//   if (!file) {
-//     return res.status(400).json({ error: "Không có tệp được tải lên." });
-//   }
+router.post("/api/v1/order/cancelOrder", orderController.cancelOrder);
+router.post("/api/v1/coupon", couponController.createCouponData);
+router.get("/api/v1/coupon", couponController.getCoupon);
 
-//   // Trả về phản hồi với thông tin về tệp đã tải lên
-//   res.json({ message: "Tệp được tải lên thành công.", data: file });
-// });
+
+// router.post("/api/v1/order/multi-upload", upload.array("files"), FileController.multiUploadForUser);
+
 export default router;

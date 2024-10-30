@@ -1,19 +1,49 @@
 import CouponModel from "../database/models/coupon.mjs";
+import OrderModel from "../database/models/order.mjs";
 
 const couponController = {
   getCoupon: async (req, res, next) => {
-    const coupon = await CouponModel.find({})
-      .populate("reviewId")
-      .then((data) => 
-      res.status(201).send({
-        data: data,
-        message: "Coupon found successfully!",
-        success: true,
-      }))
+    console.log(req.query.couponCodeName);
+    const coupon = await CouponModel.findOne({
+      couponCodeName: req.query.couponCodeName,
+    });
+    await CouponModel.findOneAndUpdate(
+      {
+        couponCodeName: req.query.couponCodeName,
+      },
+      {
+        status: "Used",
+      }
+    );
+
+    console.log(coupon);
+    res.status(201).send({
+      data: coupon,
+      message: "Coupon found successfully!",
+      success: true,
+    });
+    const order = await OrderModel.findOne({
+      _id: req.query.order,
+    });
+    if (Number(coupon?.discount) > order?.amount) {
+      await OrderModel.findOneAndUpdate(
+        {
+          _id: req.query.order,
+        },
+        { amount: 0 }
+      );
+    } else {
+      await OrderModel.findOneAndUpdate(
+        {
+          _id: req.query.order,
+        },
+        { $inc: { amount: -Number(coupon?.discount) } }
+      );
+    }
   },
   getCouponById: async (req, res, next) => {
-    const couponId = req.params.couponId
-    const coupon = await CouponModel.find({couponId});
+    const couponId = req.params.couponId;
+    const coupon = await CouponModel.find({ couponId });
     res.status(201).send({
       data: coupon,
       message: "Coupon found successfully!",
@@ -30,8 +60,6 @@ const couponController = {
   },
 
   createCouponData: async (req, res, next) => {
-    // console.log(req.body);
- 
     const coupon = await CouponModel.insertMany(req.body);
 
     res.status(201).send({
@@ -41,9 +69,9 @@ const couponController = {
     });
   },
   updateCoupon: async (req, res, next) => {
-    const couponId = req.params.couponId
+    const couponId = req.params.couponId;
 
-    const coupon = await CouponModel.findOneAndUpdate(couponId,req.body);
+    const coupon = await CouponModel.findOneAndUpdate(couponId, req.body);
     res.status(201).send({
       data: coupon,
       message: "User found successfully!",
@@ -51,7 +79,7 @@ const couponController = {
     });
   },
   deleteCoupon: async (req, res, next) => {
-    const couponId = req.params.couponId
+    const couponId = req.params.couponId;
 
     const coupon = await CouponModel.deleteOne(couponId);
     res.status(201).send({

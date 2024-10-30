@@ -8,15 +8,16 @@ import cors from "cors";
 import AuthRouter from "./src/routers/authRouter.mjs";
 import UserRouter from "./src/routers/userRouter.mjs";
 import AdminRouter from "./src/routers/adminRouter.mjs";
-import UploadFile from "./src/utils/UploadFile.mjs";
 import authenticationController from "./src/controllers/authenticationController.mjs";
 import morgan from "morgan";
 import bodyParser from "body-parser";
 import ReviewRouter from "./src/routers/reviewRouter.mjs";
-import  validate  from "./src/utils/validate.mjs";
+import validate from "./src/utils/validate.mjs";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 import { v2 as cloudinary } from "cloudinary";
+import SupportRouter from "./src/routers/supportRouter.mjs";
+import nodemailer from "nodemailer"
 
 dotenv.config();
 
@@ -29,8 +30,8 @@ app.use(bodyParser.urlencoded({ extended: false, limit: "10mb" }));
 
 // Connect to MongoDB
 connectToMongo();
-app.use(cookieParser()); 
-const App = () => {
+app.use(cookieParser());
+const App = async () => {
   app.use(morgan("dev"));
   // app.use("/public", express.static(path.join(__dirname, "public")));
 
@@ -43,10 +44,20 @@ const App = () => {
   // UserRouter(app);
 
   app.use("/api/v1/auth", AuthRouter);
-  app.use("/api/v1/users", validate.authentication, validate.auhthorizationUser, UserRouter);
-  app.use("/api/v1/admin", validate.authentication, validate.auhthorizationAdmin, AdminRouter)
-  app.use("/api/v1/products", ProductRouter)
-  app.use("/", OrderRouter)
+  app.use(
+    "/api/v1/users",
+    validate.authentication,
+    validate.auhthorizationUser,
+    UserRouter
+  );
+  app.use(
+    "/api/v1/admin",
+    validate.authentication,
+    validate.auhthorizationAdmin,
+    AdminRouter
+  );
+  app.use("/api/v1/products", ProductRouter);
+  app.use("/", OrderRouter);
 
   app.use(
     "/api/v1/users",
@@ -63,13 +74,33 @@ const App = () => {
   );
 
   app.use("/api/v1/products", ProductRouter);
+  app.use("/", ReviewRouter)
+  app.use("/", SupportRouter);
 
+  
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
   });
+  const transporter = nodemailer.createTransport({
+    host: "smtp.ethereal.email",
+    port: 587,
+    secure: false, // true for port 465, false for other ports
+    auth: {
+      user: "maddison53@ethereal.email",
+      pass: "jn7jnAPss4f63QBp6D",
+    },
+  });
+  const info = await transporter.sendMail({
+    from: '"Exclusive Customer Support" <ngothehieusan@gmail.com>', // sender address
+    to: "cusaniv@gmail.com, cusaniv@gmail.com", // list of receivers
+    subject: "Hello ✔", // Subject line
+    text: "Hello world?", // plain text body
+    html: "<b>Hello world?</b>", // html body
+  });
 
+  console.log(info);
   if (process.env.NODE_ENV === "dev") {
     app.use(
       cors({
@@ -79,13 +110,14 @@ const App = () => {
     );
   }
 
-// Start server locally if in development mode
-if (process.env.NODE_ENV === "dev") {
-  app.listen(8080, () => {
-    console.log(
-      "Server is running on port 8080. Check the app on http://localhost:8080"
-    );
-  });
-}}
+  // Start server locally if in development mode
+  if (process.env.NODE_ENV === "dev") {
+    app.listen(8080, () => {
+      console.log(
+        "Server is running on port 8080. Check the app on http://localhost:8080"
+      );
+    });
+  }
+};
 App();
 export const handler = Serverless(app);

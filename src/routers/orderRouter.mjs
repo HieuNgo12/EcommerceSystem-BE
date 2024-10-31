@@ -19,17 +19,16 @@ router.get(
 );
 router.post(
   "/api/v1/order",
-  // authenticationController.isAdmin,
   orderController.createOrder
 );
 router.patch(
   "/api/v1/order",
-  // authenticationController.isAdmin,
+  authenticationController.isAdmin,
   orderController.updateOrder
 );
 router.post(
   "/api/v1/token",
-  // authenticationController.isAdmin,
+  authenticationController.isAdmin,
   orderController.token
 );
 

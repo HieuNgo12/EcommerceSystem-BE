@@ -24,14 +24,10 @@ const reviewController = {
     const { userEmail, productId } = req.body;
     console.log(userEmail, productId);
     try {
-      const reviews = await ReviewModel.find({ productId: productId });
-      // .then((err, review) => {
-      //   console.log(review);
-      //   review = review.filter((review) => {
-      //     return review.email === userEmail;
-      //   });
+      const reviews = await ReviewModel.find({ productId: productId }).populate(
+        "userId"
+      );
 
-      // });
       console.log(reviews);
       res.status(200).send({
         data: reviews,
@@ -47,7 +43,10 @@ const reviewController = {
   addReview: async (req, res) => {
     try {
       const body = req.body;
-      const review = await ReviewModel.create(body);
+      const user = await UsersModel.findOne({
+        email: body.user,
+      });
+      const review = await ReviewModel.create({ ...body, userId: user._id });
       console.log(review);
       res.status(201).send({
         data: review,

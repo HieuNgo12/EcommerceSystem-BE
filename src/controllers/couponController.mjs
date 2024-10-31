@@ -25,7 +25,7 @@ const couponController = {
     const order = await OrderModel.findOne({
       _id: req.query.order,
     });
-    if (Number(coupon?.discount) > order?.amount) {
+    if (Number(coupon?.discount) > Number(order?.amount)) {
       await OrderModel.findOneAndUpdate(
         {
           _id: req.query.order,

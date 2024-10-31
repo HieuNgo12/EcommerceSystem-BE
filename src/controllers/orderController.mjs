@@ -6,13 +6,13 @@ import UsersModel from "../database/models/users.mjs";
 import jwt from "jsonwebtoken";
 const orderController = {
   getOrder: async (req, res, next) => {
-    const limit = req.query.limit;
+    const limit = Number(req.query.limit);
     const page = req.query.page;
     const query = req.query.query;
-    console.log(limit, page);
+
     OrderModel.find()
       .populate("paymentId")
-      // .populate("userId")
+      .populate("userId")
       .populate("deliveryId")
       .populate("productId")
       .limit(limit)
@@ -25,6 +25,7 @@ const orderController = {
       //   // { $group: { _id: '$customerId', totalAmount: { $sum: '$totalAmount' } } }
       // )
       .then((data) => {
+        console.log("data", data);
         return res.status(200).send({
           status: "OK",
           message: "Get Orders Successfully",
@@ -40,53 +41,42 @@ const orderController = {
       });
   },
   createOrder: async (req, res) => {
+    if (!req.body.body.userEmail) {
+      res.status(400).send("Unauthorized");
+    }
     try {
-      const userData = {
-        _id: "123",
-        username: "john_doe",
-        role: "user",
-      };
-      const token = jwt.sign(userData, "secret-key", { expiresIn: "1h" });
-      console.log(req.body);
-      // Xác thực JWT
-      jwt.verify(token, "secret-key", async (err, decoded) => {
-        if (err) {
-          console.error("JWT verification failed:", err.message);
-        } else {
-          console.log("Decoded JWT:");
-          console.log(decoded);
-          const product = await ProductModel.findOne({
-            title: req.body.body.productName,
-          });
-          // console.log( req.body.productName);
-          // if (req.body.quantity > product.count) {
-          const delivery = await DeliveryModel.create({
-            userId: decoded._id,
-          });
+      const userData = await UsersModel.findOne({
+        email: req.body.body.userEmail,
+      });
+      const product = await ProductModel.findOne({
+        title: req.body.body.productName,
+      });
+      // console.log( req.body.productName);
+      // if (req.body.quantity > product.count) {
+      const delivery = await DeliveryModel.create({
+        userId: userData._id,
+      });
 
-          const payment = await PaymentModel.create({
-            userId: decoded._id,
-            paymentMethod: req.body.body.paymentMethod,
-            paymentCard: req.body.body.paymentCard,
-          });
-          const ref = {
-            userId: decoded._id,
-            paymentId: payment._id,
-            deliveryId: delivery._id,
-            productId: product?._id ? product?._id : null,
-          };
-          const body = {
-            ...ref,
-            ...req.body.body,
-          };
-          const order = await OrderModel.create(body);
-          console.log(order);
-          res.status(200).send({
-            status: "OK",
-            message: "Added Order Successfully",
-            data: order,
-          });
-        }
+      const payment = await PaymentModel.create({
+        userId: userData._id,
+        paymentMethod: req.body.body.paymentMethod,
+        paymentCard: req.body.body.paymentCard,
+      });
+      const ref = {
+        userId: userData._id,
+        paymentId: payment._id,
+        deliveryId: delivery._id,
+        productId: product?._id ? product?._id : null,
+      };
+      const body = {
+        ...ref,
+        ...req.body.body,
+      };
+      const order = await OrderModel.create(body);
+      res.status(200).send({
+        status: "OK",
+        message: "Added Order Successfully",
+        data: order,
       });
     } catch (err) {
       console.log(err);
@@ -98,54 +88,24 @@ const orderController = {
     }
   },
   updateOrder: async (req, res) => {
-    const { id } = req.params;
-    const updateStatus = req.body.status;
-    if (!req.params.id) {
-      return res.status(200).send({
-        status: "ERR_REQUEST",
-        message: "Please check your ID request",
-        content: null,
-      });
-    }
-    // let content = {
-    //   title: "Cập nhật đơn hàng",
-    //   body: `Đơn hàng ${id.substr(id.length - 10)} đã được ${updateStatus}.`,
-    // };
-    try {
-      const resOrder = await OrderModel.findByIdAndUpdate(id, {
-        status: updateStatus,
-      });
-      const user = UsersModel.findById(resOrder.userId);
-      // pushNotification(user.pushTokens, content, "");
-      return res.status(200).send({
-        status: "OK",
-        message: "Updated Order Successfully",
-        content: resOrder,
-      });
-    } catch (err) {
-      return res.status(400).send({
-        status: "ERR_SERVER",
-        message: err.message,
-        content: err,
-      });
-    }
+    
+    const quantity = req.body.quantity
   },
   cancelOrder: async (req, res) => {
     try {
       const orderId = req.body.orderId;
-      console.log(orderId);
       const resOrder = await OrderModel.findOne({ _id: orderId })
         .populate("paymentId")
         .populate("deliveryId")
         .populate("productId");
-      console.log(resOrder);
+        console.log(resOrder);
       const resDelivery = await DeliveryModel.findOneAndUpdate(
         {
           _id: resOrder?.deliveryId?._id,
         },
         {
           deliveryStatus: "Cancelled",
-          cancelDate: new Date.now(),
+          cancelDate: Date.now(),
         }
       );
       const resPayment = await PaymentModel.findOneAndUpdate(
@@ -159,14 +119,13 @@ const orderController = {
       const user = UsersModel.findById(resOrder.userId);
       return res.status(200).send({
         status: "OK",
-        message: "Updated Order Successfully",
+        message: "Cancel Order Successfully",
         content: resOrder,
       });
     } catch (err) {
       return res.status(400).send({
         status: "ERR_SERVER",
         message: err.message,
-        data: { resOrder, resDelivery, resPayment },
         content: err,
       });
     }

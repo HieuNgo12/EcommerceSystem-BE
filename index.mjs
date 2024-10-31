@@ -107,24 +107,7 @@ const App = async () => {
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
   });
-  const transporter = nodemailer.createTransport({
-    host: "smtp.ethereal.email",
-    port: 587,
-    secure: false, // true for port 465, false for other ports
-    auth: {
-      user: "maddison53@ethereal.email",
-      pass: "jn7jnAPss4f63QBp6D",
-    },
-  });
-  const info = await transporter.sendMail({
-    from: '"Exclusive Customer Support" <ngothehieusan@gmail.com>', // sender address
-    to: "cusaniv@gmail.com, cusaniv@gmail.com", // list of receivers
-    subject: "Hello ✔", // Subject line
-    text: "Hello world?", // plain text body
-    html: "<b>Hello world?</b>", // html body
-  });
 
-  console.log(info);
   if (process.env.NODE_ENV === "dev") {
     app.use(
       cors({

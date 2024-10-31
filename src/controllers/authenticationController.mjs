@@ -12,7 +12,6 @@ import redis from "redis";
 import cookieParser from "cookie-parser";
 import { jwtDecode } from "jwt-decode";
 import { v2 as cloudinary } from "cloudinary";
-
 dotenv.config();
 
 //jwt
@@ -63,7 +62,7 @@ const authenticationController = {
           if (result && checkEmail) {
             const userData = {
               id: checkEmail.id,
-              username : checkEmail.username,
+              username: checkEmail.username,
               email: checkEmail.email,
               isEmailVerified: checkEmail.isEmailVerified,
               role: checkEmail.role,
@@ -455,6 +454,51 @@ const authenticationController = {
         console.log(err);
       }
     });
+  },
+  isLogin: async (req, res, next) => {
+    const userEmail = req.query.user;
+    if (userEmail) {
+      const user = await UsersModel.findOne({ email: userEmail });
+      console.log(user.role);
+      next();
+    } else {
+      res.status(400).send({
+        message: "Unauthorized",
+      });
+    }
+  },
+  isAdmin: async (req, res, next) => {
+    const userEmail = req.query.user;
+    const token =
+      req.headers["authorization"] &&
+      req.headers["authorization"].split(" ")[1];
+      console.log(token);
+    jwt.verify(token, secretKey, async (err, user) => {
+      try {
+        if (user.role === "admin") {
+          next();
+        } else {
+          res.status(400).send("UnAuthorized");
+        }
+      } catch (e) {
+        res.status(401).send({
+          message: err,
+        });
+      }
+      if (err) {
+        console.log(err);
+      }
+    });
+    if (userEmail) {
+      const role = await UsersModel.findOne({ email: userEmail }).role;
+      if (role === "Admin") {
+        next();
+      }
+    } else {
+      res.status(400).send({
+        message: "Unauthorized",
+      });
+    }
   },
 };
 export default authenticationController;

@@ -56,6 +56,10 @@ const orderModel = new mongoose.Schema(
       default: "Cash",
       enum: ["Cash", "Credit"],
     },
+    customerOrderId: {
+      type: Number,
+      default: 0,
+    },
     amount: {
       type: Number,
     },
@@ -73,22 +77,6 @@ const orderModel = new mongoose.Schema(
   }
   //   dateEstimate: { type: Date },
 );
-
 const OrderModel = mongoose.model("orders", orderModel);
 
-// const initializeOrderMode = async () => {
-//   await OrderModel.create([
-//     {
-//       firstName: "John Smith",
-//       companyName: "FPT",
-//       address: "1234 ABC street",
-//       apartment: "blk4",
-//       town: "New York",
-//       phoneNumber: "123456789",
-//       email: "johnsmith@gmail.com",
-//     },
-//   ]);
-// };
-
-// initializeOrderMode();
 export default OrderModel;

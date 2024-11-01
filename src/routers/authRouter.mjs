@@ -7,7 +7,11 @@ const router = express.Router();
 
 router.post("/signup", authenticationController.register); //ok
 
+router.post("/signup-by-gg", authenticationController.registerByGG); //ok
+
 router.post("/login", authenticationController.login); //ok
+
+router.post("/login-by-gg", authenticationController.loginByGG); //ok
 
 router.post("/forgot-password", authenticationController.forgotPassword); //ok
 

@@ -7,10 +7,11 @@ const secretKey = process.env.SECRET_KEY;
 const authMiddleware = {
   auhthorizationAdmin: (req, res, next) => {
     const userRole = req.user.role;
-    if (userRole === "admin") {
+    if (userRole === "admin" || userRole === "super") {
       next(); // Cho phép truy cập vào route
     } else {
-      res.status(403).send("Forbidden"); // Trả về lỗi 403 nếu không có quyền truy cập
+      console.log("check");
+      return res.status(403).json({ message: "Forbidden. Only for admin" }); // Trả về lỗi 403 nếu không có quyền truy cập
     }
   },
 
@@ -19,7 +20,16 @@ const authMiddleware = {
     if (userRole === "user") {
       next(); // Cho phép truy cập vào route
     } else {
-      res.status(403).send("Forbidden"); // Trả về lỗi 403 nếu không có quyền truy cập
+      return res.status(403).send("Forbidden"); // Trả về lỗi 403 nếu không có quyền truy cập
+    }
+  },
+
+  auhthorizationSuper: (req, res, next) => {
+    const userRole = req.user.role;
+    if (userRole === "super") {
+      next(); // Cho phép truy cập vào route
+    } else {
+      return res.status(403).send("Forbidden"); // Trả về lỗi 403 nếu không có quyền truy cập
     }
   },
 
@@ -31,7 +41,9 @@ const authMiddleware = {
         if (token) {
           jwt.verify(token, secretKey, (err, decoded) => {
             if (err) {
-              return res.status(403).send({ message: "Invalid or expired token" });
+              return res
+                .status(403)
+                .send({ message: "Invalid or expired token" });
             } else {
               req.user = decoded;
               next();
@@ -74,6 +86,51 @@ const authMiddleware = {
   //     res.json({ token: token });
   //   }
   // },
+
+  // refreshToken: async (req, res, next) => {
+  //   try {
+  //     const refreshToken = req.cookie.refreshToken;
+  //     // console.log(refreshToken);
+
+  //     // return res.status(200).send(refreshToken)
+  //     if (!refreshToken) throw new Error("You are not authenticated.");
+  //     const decoded = jwtDecode(refreshToken);
+  //     console.log(decoded);
+  //     jwt.verify(refreshToken, secretKey, (err, user) => {
+  //       if (err) {
+  //         console.log(err);
+  //       }
+
+  //       const userData = {
+  //         id: user.id,
+  //         email: user.email,
+  //         role: user.role,
+  //       };
+
+  //       const newAccesstoken = jwt.sign(userData, secretKey, {
+  //         expiresIn: "1h",
+  //       });
+
+  //       const newRefreshToken = jwt.sign(userData, secretKey);
+
+  //       res.cookie("refreshToken", newRefreshToken, {
+  //         httpOnly: true, // Cookie không thể truy cập qua JavaScript (bảo mật hơn)
+  //         secure: false, // Sử dụng HTTPS trong production
+  //         path: "/",
+  //         sameSite: "None", // Cần thiết nếu frontend và backend ở các domain khác nhau
+  //         maxAge: 3600000, // Thời hạn cookie 1 giờ
+  //       });
+
+  //       res.status(200).json({ data: newAccesstoken });
+  //     });
+  //   } catch (error) {
+  //     return res.status(400).send({
+  //       message: error.message,
+  //       data: null,
+  //       success: false,
+  //     });
+  //   }
+  // }
 };
 
 export default authMiddleware;

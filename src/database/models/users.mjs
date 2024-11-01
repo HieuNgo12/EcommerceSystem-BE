@@ -20,7 +20,11 @@ const userSchema = new mongoose.Schema(
     isEmailVerified: { type: Boolean, default: false },
     isIdCardVerified: { type: Boolean, default: false },
     zipcode: { type: String, default: null },
-    avatar: { type: String, default: "https://res.cloudinary.com/dsxlqhn53/image/upload/v1729910693/users/default.jpg" },
+    avatar: {
+      type: String,
+      default:
+        "https://res.cloudinary.com/dsxlqhn53/image/upload/v1729910693/users/default.jpg",
+    },
     rank: {
       type: String,
       enum: ["diamond", "gold", "silver", "normal"],
@@ -35,7 +39,7 @@ const userSchema = new mongoose.Schema(
       enum: ["pending", "active", "inactive", "suspended"],
       default: "pending",
     },
-    role: { type: String, default: "user" },
+    role: { type: String, enum: ["user", "admin", "super"], default: "user" },
     purchaseHistory: [
       {
         itemId: { type: mongoose.Schema.Types.ObjectId, ref: "Item" },

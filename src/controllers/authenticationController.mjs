@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import otpGenerator from "otp-generator";
 import OtpModel from "../database/models/otp.mjs";
 import jwt from "jsonwebtoken";
+const SECRET_KEY = "your_secret_key";
 import validator from "validator";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
@@ -11,7 +12,6 @@ import redis from "redis";
 import cookieParser from "cookie-parser";
 import { jwtDecode } from "jwt-decode";
 import { v2 as cloudinary } from "cloudinary";
-
 dotenv.config();
 
 //jwt
@@ -45,9 +45,9 @@ const authenticationController = {
         email = email.trim();
       }
       if (!password) throw new Error("password is required!");
-      else {
-        password = password.trim();
-      }
+      // else {
+      //   password = password.trim();
+      // }
 
       const checkEmail = await UsersModel.findOne({
         email: email,
@@ -230,9 +230,9 @@ const authenticationController = {
       if (checkEmail) throw new Error("Email already exists");
 
       if (!password) throw new Error("Password is required!");
-      else {
-        password = password.trim();
-      }
+      // else {
+      //   password = password.trim();
+      // }
 
       // Kiểm tra password có đúng định dạng không (ít nhất 1 chữ hoa, 1 chữ thường, 1 số, và ít nhất 8 ký tự)
       const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
@@ -468,9 +468,9 @@ const authenticationController = {
       }
 
       if (!password) throw new Error("Password is required!");
-      else {
-        password = password.trim();
-      }
+      // else {
+      //   password = password.trim();
+      // }
 
       if (!confirm) throw new Error("Confirm is required!");
       else {
@@ -530,6 +530,74 @@ const authenticationController = {
         message: error.message,
         data: null,
         success: false,
+      });
+    }
+  },
+  getUserByToken: async (req, res, next) => {
+    const token = req.body.token;
+    console.log(req.body);
+    jwt.verify(token, secretKey, async (err, user) => {
+      try {
+        const findUser = await UsersModel.findOne({
+          email: user.email,
+        });
+        console.log(findUser);
+        res.status(200).json({
+          data: findUser,
+          message: "success",
+        });
+      } catch (e) {
+        res.status(401).send({
+          message: err,
+        });
+      }
+      if (err) {
+        console.log(err);
+      }
+    });
+  },
+  isLogin: async (req, res, next) => {
+    const userEmail = req.query.user;
+    if (userEmail) {
+      const user = await UsersModel.findOne({ email: userEmail });
+      console.log(user.role);
+      next();
+    } else {
+      res.status(400).send({
+        message: "Unauthorized",
+      });
+    }
+  },
+  isAdmin: async (req, res, next) => {
+    const userEmail = req.query.user;
+    const token =
+      req.headers["authorization"] &&
+      req.headers["authorization"].split(" ")[1];
+      console.log(token);
+    jwt.verify(token, secretKey, async (err, user) => {
+      try {
+        if (user.role === "admin") {
+          next();
+        } else {
+          res.status(400).send("UnAuthorized");
+        }
+      } catch (e) {
+        res.status(401).send({
+          message: err,
+        });
+      }
+      if (err) {
+        console.log(err);
+      }
+    });
+    if (userEmail) {
+      const role = await UsersModel.findOne({ email: userEmail }).role;
+      if (role === "Admin") {
+        next();
+      }
+    } else {
+      res.status(400).send({
+        message: "Unauthorized",
       });
     }
   },

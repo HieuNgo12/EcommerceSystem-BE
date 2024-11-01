@@ -17,7 +17,7 @@ const productSchema = new mongoose.Schema(
     weight: { type: Number, default: 0 },
     dimensions: {
       length: { type: Number, default: 0 },
-      width: { type: Number, default : 0 },
+      width: { type: Number, default: 0 },
       height: { type: Number, default: 0 },
     },
     isFeatured: { type: Boolean, default: false },
@@ -59,12 +59,12 @@ const productSchema = new mongoose.Schema(
         ],
       },
     },
-    status: { 
-      type: String, 
-      required: true, 
-      enum: ['available', 'out_of_stock', 'discontinued', 'pre_order'],  // Chỉ cho phép các giá trị này
-      default: 'available'  // Giá trị mặc định là "available"
-    }
+    status: {
+      type: String,
+
+      enum: ["available", "out_of_stock", "discontinued", "pre_order"], // Chỉ cho phép các giá trị này
+      default: "available", // Giá trị mặc định là "available"
+    },
   },
   { timestamps: true }
 );

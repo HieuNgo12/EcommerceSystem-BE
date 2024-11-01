@@ -365,6 +365,23 @@ const FileController = {
       });
     }
   },
+  uploadImageForOrder: (req, res, next) => {
+    try {
+      const file = req.file;
+      console.log(req);
+      const dataUrl = `data:${file.mimetype};base64,${file.buffer.toString(
+        "base64"
+      )}`;
+
+      cloudinary.uploader.upload(dataUrl, (error, result) => {
+        if (error) return res.send(error);
+
+        return res.send(result);
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  },
 };
 
 export default FileController;

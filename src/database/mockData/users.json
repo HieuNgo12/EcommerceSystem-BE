@@ -1,0 +1,18 @@
+[
+    {
+        "firstName": "Hieu",
+        "lastName": "Ngo",
+        "username": "admin123",
+        "email": "ngothehieusan@gmail.com",
+        "password": "123",
+        "role": "Admin"
+    },
+    {
+        "firstName": "Hieu",
+        "lastName": "Ngo",
+        "username": "user123",
+        "email": "ngothehieusan@gmail.com",
+        "password": "123",
+        "role": "User"
+    }
+]

@@ -1,0 +1,17 @@
+[
+  {
+    "firstName": "Hieu",
+    "companyName": "MindX",
+    "streetAddress": "1234 Nam Ky",
+    "apartment": "blk4",
+    "townCity": "Ho Chi Minh",
+    "phoneNumber": 123456787,
+    "emailAddress": "cusaniv@gmail.com",
+    "couponCode": "",
+    "paymentMethod": "Cash",
+    "cardNumber": "123456789",
+    "isPaidByCard": true,
+    "isCashOnDelivery": false,
+    "subTotal": 19130
+  }
+]

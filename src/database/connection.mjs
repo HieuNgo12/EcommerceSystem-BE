@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
+import dotenv from "dotenv";
 
-const mongoURI = "mongodb+srv://dinhhoa0701:H1CiB0BdVrIbB03c@exclusive.izqci.mongodb.net/Exclusive?retryWrites=true&w=majority&appName=Exclusive";
+dotenv.config();
+
+// Updated connection string format
+const mongoURI = `mongodb+srv://${process.env.NAME}:${process.env.PASSWORD}@exclusive.izqci.mongodb.net/Exclusive`;
 
 const connectToMongo = async () => {
   try {
@@ -10,6 +14,9 @@ const connectToMongo = async () => {
       useUnifiedTopology: true,    // Sử dụng engine khám phá server mới
     });
     console.log("Mongo connected");
+
+    
+
   } catch (error) {
     console.log("MongoDB connection error: ", error);
     process.exit(1);  // Thoát nếu kết nối thất bại

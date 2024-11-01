@@ -29,8 +29,16 @@ router.patch("/update-profile", upload.single("file"), FileController.singleUpda
 
 router.post("/profile", userController.profile); //ok
 
-router.post("/single-upload", upload.single("file"), FileController.singleUploadForUser);
+router.post(
+  "/single-upload",
+  upload.single("file"),
+  FileController.singleUploadForUser
+);
 
-router.post("/multi-upload", upload.array("files"), FileController.multiUploadForUser);
+router.post(
+  "/multi-upload",
+  upload.array("files"),
+  FileController.multiUploadForUser
+);
 
 export default router;

@@ -24,6 +24,23 @@ const AdminController = {
     }
   },
 
+  getAdminUsers: async (req, res, next) => {
+    try {
+      const users = await UsersModel.find({ role: "admin" });
+      res.status(200).json({
+        message: "Get user successfully",
+        data: users,
+        success: true,
+      });
+    } catch (error) {
+      return res.status(401).send({
+        message: error.message,
+        data: null,
+        success: false,
+      });
+    }
+  },
+
   registerByAdmin: async (req, res, next) => {
     try {
       const file = req.file;
@@ -246,6 +263,49 @@ const AdminController = {
     }
   },
 
+  updateAdmin: async (req, res, next) => {
+    try {
+      const userId = req.params.userId;
+      const secure_url = req.secure_url;
+      if (!secure_url) {
+        let userData = req.body;
+        console.log(userData)
+        const updatedUser = await UsersModel.findByIdAndUpdate(
+          userId,
+          userData,
+          {
+            new: true,
+          }
+        );
+        res.status(200).json({
+          message: "Admin updated successfully",
+          data: updatedUser,
+          success: true,
+        });
+      } else {
+        let userData = { ...req.body, avatar: secure_url };
+        const updatedUser = await UsersModel.findByIdAndUpdate(
+          userId,
+          userData,
+          {
+            new: true,
+          }
+        );
+        res.status(200).json({
+          message: "User updated successfully",
+          data: updatedUser,
+          success: true,
+        });
+      }
+    } catch (error) {
+      res.status(500).json({
+        message: error.message,
+        data: null,
+        success: false,
+      });
+    }
+  },
+
   updateAllUser: async (req, res, next) => {
     try {
       const userId = req.params.userId;
@@ -308,11 +368,35 @@ const AdminController = {
 
   createVoucher: async (req, res, next) => {
     try {
-      
     } catch (error) {
       return res.status(403).send({
         message: error.message,
         data: null,
+        success: false,
+      });
+    }
+  },
+
+  checkAdmin: async (req, res, next) => {
+    try {
+      const userId = req.user.id;
+      const role = req.user.role;
+      const checkId = await UsersModel.findById(userId);
+      if (!checkId) {
+        return res.status(400).json({
+          message: "Id is not found!",
+        });
+      }
+
+      if (role === checkId.role) {
+        return res.status(200).json({
+          message: "Confirmed successfully",
+        });
+      }
+    } catch (error) {
+      console.error("Logout failed:", error.message);
+      return res.status(500).send({
+        message: "Logout failed",
         success: false,
       });
     }

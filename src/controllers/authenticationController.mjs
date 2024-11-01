@@ -62,7 +62,7 @@ const authenticationController = {
           if (result && checkEmail) {
             const userData = {
               id: checkEmail.id,
-              username : checkEmail.username,
+              username: checkEmail.username,
               email: checkEmail.email,
               isEmailVerified: checkEmail.isEmailVerified,
               role: checkEmail.role,
@@ -119,50 +119,53 @@ const authenticationController = {
     }
   },
 
-  // refreshToken: async (req, res, next) => {
-  //   try {
-  //     const refreshToken = req.cookie.refreshToken;
-  //     // console.log(refreshToken);
+  loginByGG: async (req, res, next) => {
+    try {
+      const token =
+        req.headers["authorization"] &&
+        req.headers["authorization"].split(" ")[1];
+      const decoded = jwtDecode(token);
 
-  //     // return res.status(200).send(refreshToken)
-  //     if (!refreshToken) throw new Error("You are not authenticated.");
-  //     const decoded = jwtDecode(refreshToken);
-  //     console.log(decoded);
-  //     jwt.verify(refreshToken, secretKey, (err, user) => {
-  //       if (err) {
-  //         console.log(err);
-  //       }
+      const checkEmail = await UsersModel.findOne({ email: decoded.email });
 
-  //       const userData = {
-  //         id: user.id,
-  //         email: user.email,
-  //         role: user.role,
-  //       };
+      const userData = {
+        id: checkEmail.id,
+        username: checkEmail.username,
+        email: checkEmail.email,
+        isEmailVerified: checkEmail.isEmailVerified,
+        role: checkEmail.role,
+      };
 
-  //       const newAccesstoken = jwt.sign(userData, secretKey, {
-  //         expiresIn: "1h",
-  //       });
+      if (userData) {
+        const accessToken = jwt.sign(userData, secretKey, {
+          expiresIn: "1m",
+        });
 
-  //       const newRefreshToken = jwt.sign(userData, secretKey);
+        const refreshToken = jwt.sign(userData, secretKey, {
+          expiresIn: "365d",
+        });
 
-  //       res.cookie("refreshToken", newRefreshToken, {
-  //         httpOnly: true, // Cookie không thể truy cập qua JavaScript (bảo mật hơn)
-  //         secure: false, // Sử dụng HTTPS trong production
-  //         path: "/",
-  //         sameSite: "None", // Cần thiết nếu frontend và backend ở các domain khác nhau
-  //         maxAge: 3600000, // Thời hạn cookie 1 giờ
-  //       });
-
-  //       res.status(200).json({ data: newAccesstoken });
-  //     });
-  //   } catch (error) {
-  //     return res.status(400).send({
-  //       message: error.message,
-  //       data: null,
-  //       success: false,
-  //     });
-  //   }
-  // },
+        return res.status(200).send({
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+          message: "Login successful!",
+          success: true,
+        });
+      } else {
+        res.status(400).send({
+          message: "Email is not found!",
+          data: null,
+          success: false,
+        });
+      }
+    } catch (error) {
+      return res.status(400).send({
+        message: error.message,
+        data: null,
+        success: false,
+      });
+    }
+  },
 
   refreshToken: async (req, res) => {
     try {
@@ -172,7 +175,6 @@ const authenticationController = {
       const decoded = jwtDecode(token);
       const dateNow = new Date();
 
-      //token exprire
       if (decoded.exp < dateNow.getTime() / 1000) {
         const newToken = jwt.sign(
           {
@@ -267,6 +269,105 @@ const authenticationController = {
           });
         });
       }
+    } catch (error) {
+      return res.status(400).send({
+        message: error.message,
+        data: null,
+        success: false,
+      });
+    }
+  },
+
+  registerByGG: async (req, res, next) => {
+    try {
+      const token =
+        req.headers["authorization"] &&
+        req.headers["authorization"].split(" ")[1];
+      const decoded = jwtDecode(token);
+      const getUserName = decoded.email.split("@")[0];
+
+      const generateRandomPassword = () => {
+        const uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const lowercaseChars = "abcdefghijklmnopqrstuvwxyz";
+        const digits = "0123456789";
+        const allChars = uppercaseChars + lowercaseChars + digits;
+
+        // Đảm bảo có ít nhất một ký tự của từng loại
+        const randomUppercase =
+          uppercaseChars[Math.floor(Math.random() * uppercaseChars.length)];
+        const randomLowercase =
+          lowercaseChars[Math.floor(Math.random() * lowercaseChars.length)];
+        const randomDigit = digits[Math.floor(Math.random() * digits.length)];
+
+        // Đảm bảo độ dài tối thiểu là 8 ký tự
+        let password = randomUppercase + randomLowercase + randomDigit;
+
+        // Thêm các ký tự ngẫu nhiên cho đủ độ dài yêu cầu
+        for (let i = password.length; i < 8; i++) {
+          password += allChars[Math.floor(Math.random() * allChars.length)];
+        }
+
+        // Chuyển đổi chuỗi thành mảng và trộn ngẫu nhiên các ký tự
+        password = password
+          .split("")
+          .sort(() => 0.5 - Math.random())
+          .join("");
+
+        return password;
+      };
+
+      const checkEmail = await UsersModel.findOne({ email: decoded.email });
+      if (checkEmail) {
+        return res.status(400).send({
+          message: "Email has been used",
+          data: null,
+          success: false,
+        });
+      }
+
+      const password = generateRandomPassword();
+
+      bcrypt.hash(password, saltRounds, async (err, hashPassword) => {
+        if (err) {
+          return res.status(500).send({
+            message: "Error hashing password",
+            data: null,
+            success: false,
+          });
+        }
+
+        const createdUser = await UsersModel.create({
+          email: decoded.email,
+          username: getUserName,
+          password: hashPassword,
+          isEmailVerified: true,
+          firstName: decoded.given_name,
+          lastName: decoded.family_name,
+          avatar: decoded.picture,
+        });
+
+        if (createdUser) {
+          const mailOptions = {
+            from: "info@test.com", // Địa chỉ email gửi
+            to: decoded.email, // Email người nhận (người dùng)
+            subject: "Your OTP Code", // Tiêu đề email
+            text: `Your Password is: ${password}`, // Nội dung email
+          };
+
+          await transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+              throw new Error("Error sending email");
+            } else {
+              console.log("Email sent: " + info.response);
+              return res.status(201).send({
+                data: createdUser,
+                message: "Register successful!",
+                success: true,
+              });
+            }
+          });
+        }
+      });
     } catch (error) {
       return res.status(400).send({
         message: error.message,

@@ -438,7 +438,7 @@ const authenticationController = {
     jwt.verify(token, secretKey, async (err, user) => {
       try {
         const findUser = await UsersModel.findOne({
-          email: user.email,
+          email: user?.email,
         });
         console.log(findUser);
         res.status(200).json({

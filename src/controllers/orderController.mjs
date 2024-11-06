@@ -11,15 +11,17 @@ const orderController = {
     const query = req.query.query;
 
     OrderModel.find()
+
       .populate("paymentId")
       .populate("userId")
       .populate("deliveryId")
       .populate("productId")
-      .limit(limit)
-      .skip(limit * (page - 1))
       .sort({
-        name: "asc",
+        createdAt: -1,
       })
+      .limit(limit)
+      .skip(limit * (page))
+     
       // .where(
       //   { productId: { title: query } }
       //   // { $group: { _id: '$customerId', totalAmount: { $sum: '$totalAmount' } } }

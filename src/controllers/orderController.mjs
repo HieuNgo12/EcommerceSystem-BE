@@ -11,25 +11,31 @@ const orderController = {
     const query = req.query.query;
 
     OrderModel.find()
+
       .populate("paymentId")
       .populate("userId")
       .populate("deliveryId")
       .populate("productId")
-      .limit(limit)
-      .skip(limit * (page - 1))
       .sort({
-        name: "asc",
+        createdAt: -1,
       })
+      .limit(limit)
+      .skip(limit * (page))
+
       // .where(
       //   { productId: { title: query } }
       //   // { $group: { _id: '$customerId', totalAmount: { $sum: '$totalAmount' } } }
       // )
-      .then((data) => {
-        console.log("data", data);
+      .then((datas) => {
+        const newData = datas.filter((data) => {
+          console.log(data);
+          return data.userId.email === req.query.user;
+        });
+        console.log(newData);
         return res.status(200).send({
           status: "OK",
           message: "Get Orders Successfully",
-          content: data,
+          content: newData,
         });
       })
       .catch((err) => {
@@ -88,8 +94,7 @@ const orderController = {
     }
   },
   updateOrder: async (req, res) => {
-    
-    const quantity = req.body.quantity
+    const quantity = req.body.quantity;
   },
   cancelOrder: async (req, res) => {
     try {
@@ -98,7 +103,7 @@ const orderController = {
         .populate("paymentId")
         .populate("deliveryId")
         .populate("productId");
-        console.log(resOrder);
+      console.log(resOrder);
       const resDelivery = await DeliveryModel.findOneAndUpdate(
         {
           _id: resOrder?.deliveryId?._id,

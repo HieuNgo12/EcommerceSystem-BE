@@ -16,14 +16,27 @@ const PromotionController = {
       );
 
       const currentDate = new Date();
-      const newArr = promotion.map(async (item) => {
-        const plainItem = item.toObject();
-        if (new Date(plainItem.endDate) > currentDate) {
-          await PromotionModel.findByIdAndUpdate(item._id, {
-            status: "expired",
-          });
-        }
-      });
+      await Promise.all(
+        promotion.map(async (item) => {
+          const plainItem = item.toObject();
+          const startDate = new Date(plainItem.startDate);
+          const endDate = new Date(plainItem.endDate);
+
+          if (endDate < currentDate) {
+            await PromotionModel.findByIdAndUpdate(item._id, {
+              status: "expired",
+            });
+          } else if (startDate > currentDate) {
+            await PromotionModel.findByIdAndUpdate(item._id, {
+              status: "inactive",
+            });
+          } else if (startDate <= currentDate && endDate >= currentDate) {
+            await PromotionModel.findByIdAndUpdate(item._id, {
+              status: "active",
+            });
+          }
+        })
+      );
 
       if (promotion) {
         return res.status(200).json({
@@ -45,14 +58,22 @@ const PromotionController = {
   addPromtion: async (req, res, next) => {
     try {
       const file = req.file;
-      const { code, discountType, discountValue, startDate, endDate } =
-        req.body;
+      const {
+        code,
+        discountType,
+        discountValue,
+        startDate,
+        endDate,
+        dataApplicableProducts,
+      } = req.body;
+
       const request = {
         code: code,
         discountType: discountType,
         discountValue: discountValue,
         startDate: startDate,
         endDate: endDate,
+        dataApplicableProducts: dataApplicableProducts,
       };
 
       for (let i in request) {
@@ -154,7 +175,6 @@ const PromotionController = {
       const promotionId = req.params.promotionId;
       const secure_url = req.secure_url;
       let dataApplicableProducts = req.body.applicableProducts;
-      console.log(dataApplicableProducts)
       if (!dataApplicableProducts) {
         if (secure_url) {
           const dataPromotion = await PromotionModel.findOneAndUpdate(
@@ -261,12 +281,15 @@ const PromotionController = {
     }
   },
 
-  couterTime: async (req, res, next) => {},
+  // downPrice: async (req, res, next) => {
+  //   const { code, discountType, discountValue, startDate, endDate } = req.body;
+  //   const promotion = req.promotion;
+  //   if()
+  // },
 
   deletePromotion: async (req, res, next) => {
     try {
       const promotionId = req.params.promotionId;
-
       await cloudinary.uploader.destroy(
         `promotion/${promotionId}`,
         {

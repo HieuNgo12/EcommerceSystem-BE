@@ -22,48 +22,16 @@ const productSchema = new mongoose.Schema(
     },
     isFeatured: { type: Boolean, default: false },
     tags: [{ type: String }],
-    rating: {
-      rate: { type: Number, default: 0 }, // Điểm trung bình đánh giá
-      totalReviews: { type: Number, default: 0 }, // Tổng số lượng đánh giá
-      stars: {
-        // Chi tiết các đánh giá cho từng mức sao
-        one: [
-          {
-            reviewId: { type: String, ref: "review" }, // Tham chiếu đến đối tượng review
-            point: { type: Number, default: 0 }, // Điểm đánh giá cho mức 1 sao
-          },
-        ],
-        two: [
-          {
-            reviewId: { type: String, ref: "review" }, // Tương tự cho 2 sao
-            point: { type: Number, default: 0 },
-          },
-        ],
-        three: [
-          {
-            reviewId: { type: String, ref: "review" }, // Tương tự cho 3 sao
-            point: { type: Number, default: 0 },
-          },
-        ],
-        four: [
-          {
-            reviewId: { type: String, ref: "review" }, // Tương tự cho 4 sao
-            point: { type: Number, default: 0 },
-          },
-        ],
-        five: [
-          {
-            reviewId: { type: String, ref: "review" }, // Tương tự cho 5 sao
-            point: { type: Number, default: 0 },
-          },
-        ],
+    reviewId: [
+      {
+        type: String,
+        ref: "review",
       },
-    },
+    ],
     status: {
       type: String,
-
-      enum: ["available", "out_of_stock", "discontinued", "pre_order"], // Chỉ cho phép các giá trị này
-      default: "available", // Giá trị mặc định là "available"
+      enum: ["available", "out_of_stock", "discontinued", "pre_order"],
+      default: "available",
     },
   },
   { timestamps: true }

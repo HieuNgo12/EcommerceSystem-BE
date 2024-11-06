@@ -4,11 +4,9 @@ import { v4 as uuidv4 } from "uuid";
 import otpGenerator from "otp-generator";
 import OtpModel from "../database/models/otp.mjs";
 import jwt from "jsonwebtoken";
-const SECRET_KEY = "your_secret_key";
 import validator from "validator";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
-import redis from "redis";
 import cookieParser from "cookie-parser";
 import { jwtDecode } from "jwt-decode";
 import { v2 as cloudinary } from "cloudinary";
@@ -30,30 +28,49 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-//check redis connection
-// client.on("error", (err) => {
-//   console.error("Error connecting to Redis", err);
-// });
-
 const authenticationController = {
   login: async (req, res, next) => {
     try {
       let { email, password } = req.body;
 
-      if (!email) throw new Error("Email is required!");
-      else {
+      if (!email) {
+        return res.status(400).json({
+          message: "Email is required!",
+        });
+      } else {
         email = email.trim();
       }
-      if (!password) throw new Error("password is required!");
-      // else {
-      //   password = password.trim();
-      // }
+      if (!password) {
+        return res.status(400).json({
+          message: "password is required!",
+        });
+      }
 
       const checkEmail = await UsersModel.findOne({
         email: email,
       });
 
-      if (!checkEmail) throw new Error("Email is incorrect");
+      if (!checkEmail) {
+        return res.status(400).json({
+          message: "Email is incorrect",
+        });
+      }
+
+      if (checkEmail.status === "suspended") {
+        const currentDate = new Date();
+        const MAX_TIME = 1 * 60 * 1000;
+        const countTime = currentDate - checkEmail.timeSuspended;
+        if (countTime < MAX_TIME) {
+          return res.status(400).json({
+            message: "Your account is suspended for 5 mins",
+          });
+        } else {
+          checkEmail.failedLoginAttempts = 0;
+          checkEmail.timeSuspended = null;
+          checkEmail.status = "active";
+          await checkEmail.save();
+        }
+      }
 
       bcrypt
         .compare(password, checkEmail.password)
@@ -76,42 +93,39 @@ const authenticationController = {
               expiresIn: "365d",
             });
 
-            // await client.connect();
+            checkEmail.failedLoginAttempts = 0;
+            await checkEmail.save();
 
-            // client.set(refreshToken, 30 * 24 * 60 * 60, JSON.stringify(userData)); // 30 ngày
-
-            // res.cookie("refreshToken", refreshToken, {
-            //   httpOnly: true,
-            //   secure: true,
-            //   path: "/",
-            //   sameSite: "None",
-            //   maxAge: 3600000,
-            // });
-
-            // res.cookie("accessToken", accessToken, {
-            //   httpOnly: true,
-            //   secure: true,
-            //   path: "/",
-            //   sameSite: "None",
-            //   maxAge: 60,
-            // });
-
-            return res.status(200).send({
+            return res.status(200).json({
               accessToken: accessToken,
               refreshToken: refreshToken,
               message: "Login successful!",
               success: true,
             });
           } else {
-            res.status(400).send({
-              message: "Password is incorrect",
-              data: null,
-              success: false,
-            });
+            checkEmail.failedLoginAttempts += 1;
+            await checkEmail.save();
+
+            if (checkEmail.failedLoginAttempts > 5) {
+              checkEmail.status = "suspended";
+              checkEmail.timeSuspended = new Date();
+              await checkEmail.save();
+              res.status(400).json({
+                message: "Your account is suspended for 5 mins",
+                data: null,
+                success: false,
+              });
+            } else {
+              res.status(400).json({
+                message: "Password is incorrect",
+                data: null,
+                success: false,
+              });
+            }
           }
         });
     } catch (error) {
-      return res.status(400).send({
+      return res.status(500).json({
         message: error.message,
         data: null,
         success: false,
@@ -127,6 +141,18 @@ const authenticationController = {
       const decoded = jwtDecode(token);
 
       const checkEmail = await UsersModel.findOne({ email: decoded.email });
+
+      if (!checkEmail) {
+        return res.status(400).json({
+          message: "Email is incorrect",
+        });
+      }
+
+      if (checkEmail.status === "suspended") {
+        return res.status(400).json({
+          message: "Your account is suspended by Admin",
+        });
+      }
 
       const userData = {
         id: checkEmail.id,
@@ -159,7 +185,7 @@ const authenticationController = {
         });
       }
     } catch (error) {
-      return res.status(400).send({
+      return res.status(500).send({
         message: error.message,
         data: null,
         success: false,
@@ -204,52 +230,92 @@ const authenticationController = {
   register: async (req, res, next) => {
     try {
       let { username, email, password, confirm } = req.body;
-      if (!username) throw new Error("Username is required!");
-      else {
+      if (!username) {
+        return res.status(400).json({
+          message: "Username is required!",
+          success: false,
+        });
+      } else {
         username = username.trim();
       }
       const checkUserNameHasAdminWord = email.includes("admin");
-      if (checkUserNameHasAdminWord)
-        throw new Error("Username does not include admin");
+      if (checkUserNameHasAdminWord) {
+        return res.status(400).json({
+          message: "Username does not include admin",
+          success: false,
+        });
+      }
 
       const checkUserName = await UsersModel.findOne({ username });
-      if (checkUserName) throw new Error("Username already exists");
+      if (checkUserName) {
+        return res.status(400).json({
+          message: "Username already exists",
+          success: false,
+        });
+      }
 
-      if (!email) throw new Error("Email is required!");
-      else {
+      if (!email) {
+        return res.status(400).json({
+          message: "Email is required!",
+          success: false,
+        });
+      } else {
         email = email.trim();
       }
-      if (!validator.isEmail(email)) throw new Error("Invalid email");
+      if (!validator.isEmail(email)) {
+        return res.status(400).json({
+          message: "Invalid email",
+          success: false,
+        });
+      }
 
       const checkEmailHasAdminWord = email.includes("admin");
-      if (checkEmailHasAdminWord)
-        throw new Error("Email does not include admin");
+      if (checkEmailHasAdminWord) {
+        return res.status(400).json({
+          message: "Email does not include admin",
+          success: false,
+        });
+      }
 
       const checkEmail = await UsersModel.findOne({ email });
 
-      if (checkEmail) throw new Error("Email already exists");
+      if (checkEmail) {
+        return res.status(400).json({
+          message: "Email already exists",
+          success: false,
+        });
+      }
 
-      if (!password) throw new Error("Password is required!");
-      // else {
-      //   password = password.trim();
-      // }
+      if (!password) {
+        return res.status(400).json({
+          message: "Password is required!",
+          success: false,
+        });
+      }
 
       // Kiểm tra password có đúng định dạng không (ít nhất 1 chữ hoa, 1 chữ thường, 1 số, và ít nhất 8 ký tự)
       const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
-      if (!passwordRegex.test(password))
-        throw new Error(
-          "Password is invalid. It must contain at least 1 uppercase letter, 1 lowercase letter, 1 digit, and be at least 8 characters long."
-        );
+      if (!passwordRegex.test(password)) {
+        return res.status(400).json({
+          message:
+            "Password is invalid. It must contain at least 1 uppercase letter, 1 lowercase letter, 1 digit, and be at least 8 characters long.",
+          success: false,
+        });
+      }
 
-      if (!confirm) throw new Error("Confirm is required!");
-      else {
+      if (!confirm) {
+        return res.status(400).json({
+          message: "Confirm is required!",
+          success: false,
+        });
+      } else {
         confirm = confirm.trim();
       }
       if (confirm == password) {
         bcrypt.hash(password, saltRounds, async (err, hashPassword) => {
           if (err) {
-            return res.status(500).send({
+            return res.status(500).json({
               message: "Error hashing password",
               data: null,
               success: false,
@@ -262,7 +328,7 @@ const authenticationController = {
             password: hashPassword,
           });
 
-          return res.status(201).send({
+          return res.status(201).json({
             data: createdUser,
             message: "Register successful!",
             success: true,
@@ -270,7 +336,7 @@ const authenticationController = {
         });
       }
     } catch (error) {
-      return res.status(400).send({
+      return res.status(500).json({
         message: error.message,
         data: null,
         success: false,
@@ -556,11 +622,11 @@ const authenticationController = {
       }
     });
   },
+
   isLogin: async (req, res, next) => {
     const userEmail = req.query.user;
     if (userEmail) {
       const user = await UsersModel.findOne({ email: userEmail });
-      console.log(user.role);
       next();
     } else {
       res.status(400).send({
@@ -568,12 +634,13 @@ const authenticationController = {
       });
     }
   },
+
   isAdmin: async (req, res, next) => {
     const userEmail = req.query.user;
     const token =
       req.headers["authorization"] &&
       req.headers["authorization"].split(" ")[1];
-      console.log(token);
+    console.log(token);
     jwt.verify(token, secretKey, async (err, user) => {
       try {
         if (user.role === "admin") {

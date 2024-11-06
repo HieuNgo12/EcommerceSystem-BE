@@ -9,7 +9,6 @@ const orderModel = new mongoose.Schema(
     },
     productId: {
       type: String,
-
       ref: "products",
     },
     paymentId: {

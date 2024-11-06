@@ -9,37 +9,36 @@ const reviewController = {
     const { productId } = req.params;
     try {
       const reviews = await ReviewModel.find({ productId });
-      res.status(200).send({
+      res.status(200).json({
         data: reviews,
         message: "Reviews retrieved successfully!",
         success: true,
       });
     } catch (error) {
       res
-        .status(400)
-        .send({ message: "Failed to retrieve reviews.", success: false });
+        .status(500)
+        .json({ message: "Failed to retrieve reviews.", success: false });
     }
   },
-  getReviews: async (req, res) => {
-    const { userEmail, productId } = req.body;
-    console.log(userEmail, productId);
-    try {
-      const reviews = await ReviewModel.find({ productId: productId }).populate(
-        "userId"
-      );
 
-      console.log(reviews);
-      res.status(200).send({
+  getReviews: async (req, res) => {
+    // const { userEmail, productId } = req.body;
+    try {
+      // const reviews = await ReviewModel.find({ productId: productId })
+      const reviews = await ReviewModel.find()
+        .populate("userId", "email username firstName lastName")
+        .populate("productId", "title ");
+      res.status(200).json({
         data: reviews,
         message: "Reviews retrieved successfully!",
         success: true,
       });
     } catch (error) {
       console.log(error.message);
-      res.status(400).send({ message: error.message, success: false });
+      res.status(500).json({ message: error.message, success: false });
     }
   },
-  // Add a new review (all)
+
   addReview: async (req, res) => {
     try {
       const body = req.body;
@@ -47,14 +46,13 @@ const reviewController = {
         email: body.user,
       });
       const review = await ReviewModel.create({ ...body, userId: user._id });
-      console.log(review);
-      res.status(201).send({
+      res.status(201).json({
         data: review,
         message: "Review added successfully!",
         success: true,
       });
     } catch (error) {
-      res.status(400).send({ message: error.message, success: false });
+      res.status(400).json({ message: error.message, success: false });
     }
   },
 
@@ -80,12 +78,55 @@ const reviewController = {
           success: true,
         });
       } else {
-        res.status(403).send({ message: "Permission denied.", success: false });
+        res.status(403).json({ message: "Permission denied.", success: false });
       }
     } catch (error) {
       res
         .status(400)
         .send({ message: "Failed to update review.", success: false });
+    }
+  },
+
+  addReply: async (req, res) => {
+    try {
+      const user = req.user;
+      const { reviewId } = req.params;
+      const review = await ReviewModel.findById(reviewId);
+      if (!review) {
+        return res.status(400).json({
+          message: "Review not found.",
+          success: false,
+        });
+      }
+
+      const addRep = await ReviewModel.findByIdAndUpdate(
+        reviewId,
+        {
+          reply: {
+            adminId: user.id,
+            text: req.body.text,
+            statusReply: true,
+          },
+          status: req.body.status,
+        },
+        { new: true }
+      );
+      if (addRep) {
+        return res.status(200).json({
+          data: addRep,
+          message: "Review updated successfully!",
+          success: true,
+        });
+      } else {
+        return res.status(400).json({
+          message: "Permission denied.",
+          success: false,
+        });
+      }
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ message: "Failed to update review.", success: false });
     }
   },
 
@@ -95,27 +136,31 @@ const reviewController = {
     try {
       const review = await ReviewModel.findById(reviewId);
       if (!review)
-        return res
-          .status(404)
-          .send({ message: "Review not found.", success: false });
+        return res.status(400).json({
+          message: "Review not found.",
+          success: false,
+        });
 
-      if (
-        req.user.role === "admin" ||
-        req.user.id === review.userId.toString()
-      ) {
-        await review.remove();
-        res
-          .status(200)
-          .send({ message: "Review deleted successfully!", success: true });
+      const del = await ReviewModel.findByIdAndDelete(reviewId);
+      if (del) {
+        return res.status(200).json({
+          message: "Review deleted successfully!",
+          success: true,
+        });
       } else {
-        res.status(403).send({ message: "Permission denied.", success: false });
+        res.status(400).json({
+          message: "Permission denied.",
+          success: false,
+        });
       }
     } catch (error) {
-      res
-        .status(400)
-        .send({ message: "Failed to delete review.", success: false });
+      return res.status(500).json({
+        message: "Failed to delete review.",
+        success: false,
+      });
     }
   },
+
   uploadSingleFile: async (req, res) => {
     const file = req.file;
     const dataUrl = `data:${file.mimetype};base64,${file.buffer.toString(

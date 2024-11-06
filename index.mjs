@@ -23,14 +23,6 @@ import nodemailer from "nodemailer"
 dotenv.config();
 
 const app = express();
-// app.use(cors());
-
-// app.use(
-//   cors({
-//     origin: "http://localhost:5173",
-//     credentials: true,
-//   })
-// );
 
 const corsConfig = {
   origin: true,
@@ -40,13 +32,8 @@ const corsConfig = {
 app.use(cors(corsConfig));
 app.options("*", cors(corsConfig));
 
-app.use(express.json());
-app.use(morgan("dev"));
-app.use(bodyParser.json({ limit: "10mb" }));
-app.use(bodyParser.urlencoded({ extended: false, limit: "10mb" }));
 
-// Connect to MongoDB
-connectToMongo();
+
 app.use(cookieParser());
 const App = async () => {
   app.use(morgan("dev"));
@@ -56,39 +43,25 @@ const App = async () => {
   app.use(bodyParser.json({ limit: "10mb" }));
   app.use(bodyParser.urlencoded({ extended: false, limit: "10mb" }));
   connectToMongo();
-  // ProductRouter(app);
-  // OrderRouter(app);
-  // UserRouter(app);
 
+  //Hòa
   app.use("/api/v1/auth", AuthRouter);
+
   app.use(
     "/api/v1/users",
     validate.authentication,
-    validate.auhthorizationUser,
+    // validate.auhthorizationUser,
     UserRouter
   );
+
   app.use(
     "/api/v1/admin",
     validate.authentication,
     validate.auhthorizationAdmin,
     AdminRouter
   );
+  
   app.use("/api/v1/products", ProductRouter);
-  app.use("/", OrderRouter);
-
-  app.use(
-    "/api/v1/users",
-    validate.authentication,
-    validate.auhthorizationUser,
-    UserRouter
-  );
-
-  app.use(
-    "/api/v1/admin",
-    validate.authentication,
-    validate.auhthorizationAdmin,
-    AdminRouter
-  );
 
   app.use(
     "/api/v1/promotion",
@@ -97,7 +70,8 @@ const App = async () => {
     PromotionRouter
   );
 
-  app.use("/api/v1/products", ProductRouter);
+  //Hiếu
+  app.use("/", OrderRouter);
   app.use("/", ReviewRouter)
   app.use("/", SupportRouter);
 

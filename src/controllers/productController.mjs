@@ -1,16 +1,79 @@
 import ProductModel from "../database/models/product.mjs";
 import { v2 as cloudinary } from "cloudinary";
+import PromotionModel from "../database/models/promotion.mjs";
 
 const productController = {
   getProduct: async (req, res, next) => {
     try {
-      const product = await ProductModel.find({})
-      // .populate("reviewId");
-      res.status(201).send({
-        data: product,
-        message: "User found successfully!",
-        success: true,
-      });
+      let product = await ProductModel.find({}).populate("reviewId");
+
+      let promotion = await PromotionModel.find();
+
+      const currentDate = new Date();
+
+      await Promise.all(
+        promotion.map(async (item) => {
+          const plainItem = item.toObject();
+          const startDate = new Date(plainItem.startDate);
+          const endDate = new Date(plainItem.endDate);
+
+          if (endDate < currentDate) {
+            await PromotionModel.findByIdAndUpdate(item._id, {
+              status: "expired",
+            });
+          } else if (startDate > currentDate) {
+            await PromotionModel.findByIdAndUpdate(item._id, {
+              status: "inactive",
+            });
+          } else if (startDate <= currentDate && endDate >= currentDate) {
+            await PromotionModel.findByIdAndUpdate(item._id, {
+              status: "active",
+            });
+          }
+        })
+      );
+
+      let arr = promotion.filter((item) => item.status === "active");
+      if (arr) {
+        product = product.map((item3) => {
+          item3 = item3.toObject ? item3.toObject() : item3;
+
+          arr.forEach((item1) => {
+            if (item1.discountType === "fixed") {
+              if (item1.applicableProducts.includes(item3._id.toString())) {
+                item3 = {
+                  ...item3,
+                  price: item3.price - item1.discountValue,
+                  discount: item1.discountValue,
+                };
+              }
+            }
+
+            if (item1.discountType === "percentage") {
+              if (item1.applicableProducts.includes(item3._id.toString())) {
+                item3 = {
+                  ...item3,
+                  price: (item3.price * (100 - item1.discountValue)) / 100,
+                  discount: (item3.price * item1.discountValue) / 100,
+                };
+              }
+            }
+          });
+
+          return item3;
+        });
+        res.status(201).send({
+          data: product,
+          message: "User found successfully!",
+          success: true,
+        });
+      } else {
+        res.status(201).send({
+          data: product,
+          message: "User found successfully!",
+          success: true,
+        });
+      }
     } catch (e) {
       return res.status(403).send({
         message: e.message,
@@ -24,8 +87,6 @@ const productController = {
     try {
       const productId = req.params.productId;
       const product = await ProductModel.findById(productId);
-
-      console.log(product);
       res.status(201).send({
         data: product,
         message: "User found successfully!",
@@ -86,7 +147,7 @@ const productController = {
         const dataUrl = `data:${file.mimetype};base64,${file.buffer.toString(
           "base64"
         )}`;
-        
+
         cloudinary.uploader.upload(
           dataUrl,
           {
@@ -258,7 +319,6 @@ const productController = {
     }
   },
 
-  //Delete a product (Admin only).
   deleteAllProducts: async (req, res, next) => {
     const product = await ProductModel.deleteMany({});
     res.status(201).send({
@@ -268,9 +328,7 @@ const productController = {
     });
   },
 
-  //Get a list of all products. (both users/admin)
   getAllProducts: async (req, res, next) => {
-    console.log("abc");
     const products = await ProductModel.find({})
       .populate("reviewId")
       .then((data) => {
@@ -288,7 +346,6 @@ const productController = {
       });
   },
 
-  //Get details of a specific product.
   getProductById: async (req, res, next) => {
     const { productId } = req.params;
     try {

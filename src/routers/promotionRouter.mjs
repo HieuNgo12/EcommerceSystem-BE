@@ -5,6 +5,7 @@ import multer from "multer";
 import FileController from "../controllers/fileController.mjs";
 import AdminController from "../controllers/adminController.mjs";
 import PromotionController from "../controllers/promotionController.mjs";
+import validate from "../utils/validate.mjs";
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -14,17 +15,26 @@ router.get("/get-promotion", PromotionController.getPromotion);
 
 router.post(
   "/add-promotion",
+  validate.authentication,
+  validate.auhthorizationAdmin,
   upload.single("file"),
   PromotionController.addPromtion
 );
 
 router.patch(
   "/update-promotion/:promotionId",
+  validate.authentication,
+  validate.auhthorizationAdmin,
   upload.single("file"),
   FileController.singleUpdateForPromotion,
   PromotionController.updatePromotion
 );
 
-router.delete("/delete-promotion/:promotionId", PromotionController.deletePromotion);
+router.delete(
+  "/delete-promotion/:promotionId",
+  validate.authentication,
+  validate.auhthorizationAdmin,
+  PromotionController.deletePromotion
+);
 
 export default router;

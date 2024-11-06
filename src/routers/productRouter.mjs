@@ -8,7 +8,7 @@ import multer from "multer";
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 const router = express.Router();
-
+//test
 router.get("/", productController.getProduct); 
 
 router.get("/:productId", productController.getProductById); 

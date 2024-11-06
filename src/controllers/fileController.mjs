@@ -151,8 +151,57 @@ const FileController = {
     );
   },
 
+  singleUploadForSupport: (req, res, next) => {
+    const file = req.file;
+    const userId = req.user.userId;
+
+    if (!userId) throw new Error("Please log in frist!");
+
+    if (!file) throw new Error("File is not found!");
+
+    const dataUrl = `data:${file.mimetype};base64,${file.buffer.toString(
+      "base64"
+    )}`;
+    // const fileName = file.originalname.split(".")[0];
+
+    cloudinary.uploader.upload(
+      dataUrl,
+      {
+        public_id: userId,
+        resource_type: "auto",
+        folder: "users",
+        overwrite: true,
+        // có thể thêm field folder nếu như muốn tổ chức
+      },
+      (err, result) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ error: "File upload failed.", details: err });
+        }
+
+        if (result) {
+          console.log(result.secure_url);
+
+          // Trả về secure_url và thông tin khác sau khi tải lên thành công
+          return res.status(200).json({
+            message: "File uploaded successful.",
+            secure_url: result.secure_url, // Trả về URL ảnh từ Cloudinary
+            public_id: result.public_id,
+            data: {
+              fileName: file.originalname,
+              mimetype: file.mimetype,
+              size: file.size,
+            },
+          });
+        }
+      }
+    );
+  },
+
   singleUpdateForUser: (req, res, next) => {
     const file = req.file;
+    console.log(file)
     const userId = req.user.id;
     if (!userId) throw new Error("Please log in frist!");
 
@@ -365,6 +414,7 @@ const FileController = {
       });
     }
   },
+  
   uploadImageForOrder: (req, res, next) => {
     try {
       const file = req.file;

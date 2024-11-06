@@ -8,28 +8,28 @@ const authMiddleware = {
   auhthorizationAdmin: (req, res, next) => {
     const userRole = req.user.role;
     if (userRole === "admin" || userRole === "super") {
-      next(); // Cho phép truy cập vào route
+      next(); 
     } else {
       console.log("check");
-      return res.status(403).json({ message: "Forbidden. Only for admin" }); // Trả về lỗi 403 nếu không có quyền truy cập
+      return res.status(403).json({ message: "Forbidden. Only for admin" }); 
     }
   },
 
   auhthorizationUser: (req, res, next) => {
     const userRole = req.user.role;
     if (userRole === "user") {
-      next(); // Cho phép truy cập vào route
+      next(); 
     } else {
-      return res.status(403).send("Forbidden"); // Trả về lỗi 403 nếu không có quyền truy cập
+      return res.status(403).send("Forbidden"); 
     }
   },
 
   auhthorizationSuper: (req, res, next) => {
     const userRole = req.user.role;
     if (userRole === "super") {
-      next(); // Cho phép truy cập vào route
+      next(); 
     } else {
-      return res.status(403).send("Forbidden"); // Trả về lỗi 403 nếu không có quyền truy cập
+      return res.status(403).send("Forbidden"); 
     }
   },
 

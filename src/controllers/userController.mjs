@@ -13,9 +13,11 @@ import { v2 as cloudinary } from "cloudinary";
 
 dotenv.config();
 
+//jwt
 const secretKey = process.env.SECRET_KEY || "mysecretkey";
 const saltRounds = 10;
 
+//nodemailder
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   secure: false,
@@ -26,6 +28,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+//vonage
 const vonage = new Vonage({
   apiKey: process.env.API_KEY,
   apiSecret: process.env.API_SECRET,
@@ -176,6 +179,7 @@ const userController = {
 
       // const formattedPhone = formatPhoneNumber(phone);
 
+      //vontage
       const from = "Vonage APIs";
       const to = phone;
       const text = `Your otp is ${otp}`;
@@ -195,7 +199,7 @@ const userController = {
 
       sendSMS();
     } catch (error) {
-      console.error("Twilio error:", error);
+      console.error("Error:", error);
       return res.status(403).send({
         message: error.message,
         data: null,
@@ -323,65 +327,120 @@ const userController = {
 
   updateUser: async (req, res, next) => {
     try {
+      const file = req.file;
       const secure_url = req.secure_url;
-      // const public_id = req.public_id;
-      const userId = req.user.id;
-      const {
-        firstName,
-        lastName,
-        gender,
-        dateOfBirth,
-        number,
-        ward,
-        district,
-        city,
-        zipcode,
-        password,
-        idCard,
-      } = req.body;
-
-      const userData = {
-        firstName,
-        lastName,
-        gender,
-        dateOfBirth,
-        zipcode,
-        avatar: secure_url,
-        address: {
+      if (file) {
+        const userId = req.user.id;
+        const {
+          firstName,
+          lastName,
+          gender,
+          dateOfBirth,
           number,
           ward,
           district,
           city,
-        },
-        idCard,
-      };
+          zipcode,
+          password,
+          idCard,
+        } = req.body;
 
-      const user = await UsersModel.findOne({ _id: userId });
+        const userData = {
+          firstName,
+          lastName,
+          gender,
+          dateOfBirth,
+          zipcode,
+          avatar: secure_url,
+          address: {
+            number,
+            ward,
+            district,
+            city,
+          },
+          idCard,
+        };
 
-      // const result = await bcrypt.compare(password, user.password);
+        const user = await UsersModel.findOne({ _id: userId });
 
-      bcrypt.compare(password, user.password).then(async function (result) {
-        if (!result) {
-          console.log("Password is incorrect! hehehe");
-          return;
-        }
-
-        const updatedUser = await UsersModel.findByIdAndUpdate(
-          userId,
-          userData,
-          {
-            new: true,
+        bcrypt.compare(password, user.password).then(async function (result) {
+          if (!result) {
+            console.log("Password is incorrect! hehehe");
+            return;
           }
-        );
 
-        if (!updatedUser) throw new Error("User updated fail!");
+          const updatedUser = await UsersModel.findByIdAndUpdate(
+            userId,
+            userData,
+            {
+              new: true,
+            }
+          );
 
-        res.status(200).json({
-          message: "User updated successfully",
-          data: updatedUser,
-          success: true,
+          if (!updatedUser) throw new Error("User updated fail!");
+
+          res.status(200).json({
+            message: "User updated successfully",
+            data: updatedUser,
+            success: true,
+          });
         });
-      });
+      } else {
+        const userId = req.user.id;
+        const {
+          firstName,
+          lastName,
+          gender,
+          dateOfBirth,
+          number,
+          ward,
+          district,
+          city,
+          zipcode,
+          password,
+          idCard,
+        } = req.body;
+
+        const userData = {
+          firstName,
+          lastName,
+          gender,
+          dateOfBirth,
+          zipcode,
+          address: {
+            number,
+            ward,
+            district,
+            city,
+          },
+          idCard,
+        };
+
+        const user = await UsersModel.findOne({ _id: userId });
+
+        bcrypt.compare(password, user.password).then(async function (result) {
+          if (!result) {
+            console.log("Password is incorrect! hehehe");
+            return;
+          }
+
+          const updatedUser = await UsersModel.findByIdAndUpdate(
+            userId,
+            userData,
+            {
+              new: true,
+            }
+          );
+
+          if (!updatedUser) throw new Error("User updated fail!");
+
+          res.status(200).json({
+            message: "User updated successfully",
+            data: updatedUser,
+            success: true,
+          });
+        });
+      }
     } catch (error) {
       res.status(500).json({
         message: error.message,
@@ -540,6 +599,5 @@ const userController = {
       });
     }
   },
-
 };
 export default userController;

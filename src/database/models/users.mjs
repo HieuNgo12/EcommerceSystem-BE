@@ -5,6 +5,8 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true },
     username: { type: String, required: true },
     password: { type: String, required: true },
+    failedLoginAttempts: { type: Number, default: 0 },
+    timeSuspended: { type: Date, default: null },
     firstName: { type: String, default: "" },
     lastName: { type: String, default: "" },
     gender: { type: Boolean, default: true },

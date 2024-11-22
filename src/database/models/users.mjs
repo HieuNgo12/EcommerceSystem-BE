@@ -42,6 +42,8 @@ const userSchema = new mongoose.Schema(
       default: "pending",
     },
     role: { type: String, enum: ["user", "admin", "super"], default: "user" },
+    reviewId: { type: String, ref: "reviews" },
+    supportId: { type : String , ref : "supports"},
     purchaseHistory: [
       {
         itemId: { type: mongoose.Schema.Types.ObjectId, ref: "Item" },

@@ -135,7 +135,12 @@ const userController = {
       const userId = req.user.id;
       const { phone } = req.body;
 
-      if (!phone) throw new Error("Phone is required");
+      if (!phone) {
+        return res.status(400).json({
+          message: "Phone is required",
+          success: false,
+        });
+      }
 
       const checkId = await UsersModel.findById(userId);
 
@@ -144,10 +149,19 @@ const userController = {
         isPhoneVerified: false,
       });
 
-      if (!checkVerifiedPhone)
-        throw new Error("Phone number is already Verified");
+      if (!checkVerifiedPhone) {
+        return res.status(400).json({
+          message: "Phone number is already Verified",
+          success: false,
+        });
+      }
 
-      if (!checkId) throw new Error("Phone number is already in use");
+      if (!checkId) {
+        return res.status(400).json({
+          message: "Phone number is already in use",
+          success: false,
+        });
+      }
 
       const otp = otpGenerator.generate(6, {
         digits: true,
@@ -164,20 +178,12 @@ const userController = {
 
       const newOtp = await OtpModel.create(arrOtp);
 
-      if (!newOtp) throw new Error("OTP not generated!");
-
-      // const formatPhoneNumber = (phone) => {
-      //   phone = String(phone);
-      //   if (phone.startsWith("0") && !phone.startsWith("+")) {
-      //     return "+84" + phone.slice(1);
-      //   }
-      //   if (!phone.startsWith("+")) {
-      //     return "+84" + phone;
-      //   }
-      //   return phone;
-      // };
-
-      // const formattedPhone = formatPhoneNumber(phone);
+      if (!newOtp) {
+        return res.status(400).json({
+          message: "OTP not generated!",
+          success: false,
+        });
+      }
 
       //vontage
       const from = "Vonage APIs";
@@ -190,6 +196,11 @@ const userController = {
           .then((resp) => {
             console.log("Sent OTP successfully");
             console.log(resp);
+            return res.status(200).json({
+              message: error.message,
+              data: null,
+              success: false,
+            });
           })
           .catch((err) => {
             console.log("There was an error sending the messages.");
@@ -200,7 +211,7 @@ const userController = {
       sendSMS();
     } catch (error) {
       console.error("Error:", error);
-      return res.status(403).send({
+      return res.status(403).json({
         message: error.message,
         data: null,
         success: false,
@@ -379,7 +390,7 @@ const userController = {
 
           if (!updatedUser) throw new Error("User updated fail!");
 
-          res.status(200).json({
+          return res.status(200).json({
             message: "User updated successfully",
             data: updatedUser,
             success: true,
@@ -434,7 +445,7 @@ const userController = {
 
           if (!updatedUser) throw new Error("User updated fail!");
 
-          res.status(200).json({
+          return res.status(200).json({
             message: "User updated successfully",
             data: updatedUser,
             success: true,
@@ -442,7 +453,117 @@ const userController = {
         });
       }
     } catch (error) {
-      res.status(500).json({
+      return res.status(500).json({
+        message: error.message,
+        data: null,
+        success: false,
+      });
+    }
+  },
+
+  updatePhone: async (req, res, next) => {
+    try {
+      const phone = req.body.phone;
+      const userId = req.params.userId;
+      const user = await UsersModel.findById(userId);
+      const checkPhone = await UsersModel.findOne({ phone: phone });
+      if (!phone) {
+        return res.status(400).json({
+          message: "Phone is required",
+          success: false,
+        });
+      }
+
+      if (!user) {
+        return res.status(400).json({
+          message: "User is not found!",
+          success: false,
+        });
+      }
+
+      if (checkPhone) {
+        return res.status(400).json({
+          message: "Phone is used!",
+          success: false,
+        });
+      }
+
+      const changePhone = await UsersModel.findByIdAndUpdate(
+        userId,
+        {
+          phone: phone,
+        },
+        { new: true }
+      );
+      if (changePhone) {
+        return res.status(200).json({
+          message: "User updated successfully",
+          success: true,
+        });
+      } else {
+        return res.status(400).json({
+          message: "Update is failed!",
+          success: false,
+        });
+      }
+    } catch (error) {
+      return res.status(500).json({
+        message: error.message,
+        data: null,
+        success: false,
+      });
+    }
+  },
+
+  updateEmail: async (req, res, next) => {
+    try {
+      const email = req.body.email;
+      const userId = req.params.userId;
+      const user = await UsersModel.findById(userId);
+      const checkEmail = await UsersModel.findOne({ email: email });
+
+
+      if (!email) {
+        return res.status(400).json({
+          message: "Email is required",
+          success: false,
+        });
+      }
+
+      if (!user) {
+        return res.status(400).json({
+          message: "User is not found!",
+          success: false,
+        });
+      }
+
+      if (checkEmail) {
+        return res.status(400).json({
+          message: "Email is used!",
+          success: false,
+        });
+      }
+
+      const changeEmail = await UsersModel.findByIdAndUpdate(
+        userId,
+        {
+          email: email,
+        },
+        { new: true }
+      );
+      if (changeEmail) {
+        return res.status(200).json({
+          message: "Email is updated successfully",
+          success: true,
+        });
+      } else {
+        return res.status(400).json({
+          message: "Update is failed!",
+          success: false,
+        });
+      }
+    } catch (error) {
+      return res.status(500).json({
         message: error.message,
         data: null,
         success: false,
@@ -479,7 +600,7 @@ const userController = {
       const checkUserId = await UsersModel.findById(userId);
 
       if (!checkUserId) {
-        res.status(400).json({
+        return res.status(400).json({
           message: "UserId is not found.",
           data: null,
           success: false,
@@ -488,7 +609,7 @@ const userController = {
         res.status(200).json(checkUserId);
       }
     } catch (error) {
-      res.status(400).json({
+      return res.status(500).json({
         message: error.message,
         data: null,
         success: false,

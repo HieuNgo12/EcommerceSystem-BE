@@ -27,6 +27,10 @@ router.put("/update-all-profile", userController.updateAllUser);
 
 router.patch("/update-profile", upload.single("file"), FileController.singleUpdateForUser, userController.updateUser); //ok
 
+router.patch("/update-phone/:userId", userController.updatePhone); //ok
+
+router.patch("/update-email/:userId", userController.updateEmail); //ok
+
 router.post("/profile", userController.profile); //ok
 
 router.post(
